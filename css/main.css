@@ -290,23 +290,23 @@ button {
 
 .stage-copy {
   position: absolute;
-  inset: 178px auto auto 8px;
+  inset: 126px auto auto 8px;
   z-index: 3;
   display: grid;
-  gap: 6px;
+  gap: 8px;
 }
 
 .stage-copy__step {
   display: inline-flex;
   width: fit-content;
-  min-height: 42px;
+  min-height: 44px;
   align-items: center;
-  padding: 0 22px;
+  padding: 0 24px;
   border-radius: 6px;
   border: 1px solid rgba(255, 209, 123, 0.44);
   background: linear-gradient(180deg, rgba(54, 36, 21, 0.9), rgba(16, 13, 10, 0.94));
   color: #ffe1a8;
-  font-size: 1.02rem;
+  font-size: 1.12rem;
   font-weight: 800;
   clip-path: polygon(10px 0, calc(100% - 10px) 0, 100% 50%, calc(100% - 10px) 100%, 10px 100%, 0 50%);
 }
@@ -314,9 +314,10 @@ button {
 .stage-copy__hint {
   max-width: 330px;
   color: rgba(245, 234, 216, 0.9);
-  font-size: 1rem;
-  line-height: 1.42;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.34);
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.36;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
 }
 
 .stage-copy__status {
@@ -387,7 +388,7 @@ button {
 
 .glass-pedestal {
   position: absolute;
-  bottom: 16px;
+  bottom: 8px;
   width: 178px;
   height: 28px;
   border-radius: 6px;
@@ -401,7 +402,7 @@ button {
 
 .glass-shadow {
   position: absolute;
-  bottom: 18px;
+  bottom: 10px;
   width: 170px;
   height: 28px;
   border-radius: 50%;
@@ -413,7 +414,7 @@ button {
   position: relative;
   width: 184px;
   height: 294px;
-  margin-bottom: 30px;
+  margin-bottom: 12px;
   border: 2px solid rgba(255, 249, 232, 0.92);
   border-top-width: 5px;
   border-radius: 24px 24px 34px 34px;
@@ -724,6 +725,7 @@ button {
 .shake-prompt__text {
   color: rgba(245, 234, 216, 0.9);
   font-size: 0.78rem;
+  font-weight: 700;
   line-height: 1.44;
 }
 
@@ -903,11 +905,37 @@ button {
     transform 180ms var(--ease-out),
     border-color 180ms ease,
     box-shadow 180ms ease,
-    background 180ms ease;
+    background 180ms ease,
+    filter 180ms ease;
 }
 
 .option-card:active {
   transform: translateY(1px) scale(0.99);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 213, 128, 0.72);
+    background:
+      radial-gradient(circle at 68% 30%, rgba(255, 191, 89, 0.18), transparent 34%),
+      linear-gradient(145deg, rgba(57, 44, 29, 0.98), rgba(13, 11, 8, 0.98));
+    box-shadow:
+      inset 0 1px 0 rgba(255, 241, 204, 0.16),
+      0 0 0 1px rgba(255, 201, 105, 0.08),
+      0 0 18px rgba(218, 136, 42, 0.18),
+      0 16px 28px rgba(0, 0, 0, 0.34);
+    filter: saturate(1.04);
+  }
+
+  .option-pager__arrow:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: rgba(255, 213, 128, 0.7);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 241, 204, 0.12),
+      0 0 16px rgba(218, 136, 42, 0.14),
+      0 12px 22px rgba(0, 0, 0, 0.28);
+  }
 }
 
 .option-card--active {
@@ -956,6 +984,113 @@ button {
   max-height: 100%;
   object-fit: contain;
   filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.45));
+}
+
+.sheet--base .option-grid {
+  gap: 10px;
+}
+
+.sheet--base .option-card {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  min-height: 172px;
+  padding: 10px 10px 12px;
+}
+
+.sheet--base .option-card__badge {
+  display: none;
+}
+
+.sheet--base .option-card__media {
+  grid-column: 1;
+  grid-row: 1;
+  width: 88px;
+  height: 118px;
+  align-self: center;
+  justify-self: center;
+  margin-top: 6px;
+}
+
+.sheet--base .option-card__icon {
+  max-width: 88px;
+  max-height: 118px;
+  filter:
+    drop-shadow(0 18px 16px rgba(0, 0, 0, 0.5))
+    drop-shadow(0 2px 0 rgba(255, 236, 194, 0.06));
+}
+
+.sheet--base .option-card__body {
+  grid-column: 1;
+  grid-row: 2;
+  align-self: end;
+  justify-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.sheet--base .option-card__title {
+  font-size: 1rem;
+}
+
+.sheet--base .option-card__meta {
+  font-size: 0.84rem;
+}
+
+.option-pager {
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.option-pager__arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid rgba(228, 170, 86, 0.46);
+  background:
+    linear-gradient(180deg, rgba(41, 31, 21, 0.96), rgba(11, 10, 8, 0.98)),
+    rgba(11, 10, 8, 0.98);
+  color: #f5d9a1;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 238, 194, 0.08),
+    0 8px 16px rgba(0, 0, 0, 0.24);
+  transition:
+    transform 180ms var(--ease-out),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    opacity 180ms ease;
+}
+
+.option-pager__arrow:disabled {
+  opacity: 0.35;
+}
+
+.option-pager__dots {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.option-pager__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(255, 232, 191, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 231, 181, 0.08);
+}
+
+.option-pager__dot--active {
+  width: 22px;
+  background: linear-gradient(90deg, rgba(255, 222, 147, 0.9), rgba(207, 132, 48, 0.92));
+  box-shadow:
+    0 0 12px rgba(231, 172, 75, 0.22),
+    inset 0 1px 0 rgba(255, 244, 212, 0.22);
 }
 
 .option-card__body {
@@ -1211,24 +1346,24 @@ button {
 .bottom-controls {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 12px;
-  padding-top: 12px;
+  gap: 0;
+  padding-top: 6px;
   background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.36));
 }
 
 .control-strip {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: 0.95fr 1fr 1.45fr 0.95fr;
+  gap: 6px;
 }
 
 .control-button {
-  min-height: 50px;
+  min-height: 42px;
   border-radius: 6px;
   border: 1px solid rgba(226, 169, 88, 0.54);
   color: #24140d;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 0.9rem;
   background:
     radial-gradient(circle at 50% 0, rgba(255, 218, 116, 0.28), transparent 42%),
     linear-gradient(180deg, #a66b2a 0%, #7f471b 52%, #43220e 100%);
@@ -1240,11 +1375,39 @@ button {
   transition:
     transform 180ms var(--ease-out),
     filter 180ms ease,
-    opacity 180ms ease;
+    opacity 180ms ease,
+    box-shadow 180ms ease,
+    border-color 180ms ease;
 }
 
 .control-button:active {
   transform: translateY(1px) scale(0.995);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .control-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    filter: saturate(1.06) brightness(1.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 252, 229, 0.38),
+      0 0 18px rgba(237, 155, 45, 0.18),
+      0 14px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .control-button--ghost:hover:not(:disabled) {
+    border-color: rgba(255, 210, 124, 0.58);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 16px rgba(231, 172, 75, 0.1),
+      0 12px 22px rgba(0, 0, 0, 0.22);
+  }
+
+  .theme-button:hover,
+  .save-button:hover {
+    border-color: rgba(255, 214, 126, 0.46);
+    filter: brightness(1.04);
+    box-shadow: 0 0 16px rgba(237, 155, 45, 0.14);
+  }
 }
 
 .control-button--ghost {
@@ -1261,8 +1424,8 @@ button {
 }
 
 .control-button--primary {
-  min-height: 60px;
-  letter-spacing: 0.06em;
+  min-height: 48px;
+  letter-spacing: 0.04em;
   color: #fff0ca;
   border-color: rgba(255, 214, 126, 0.82);
   background:
@@ -1272,6 +1435,11 @@ button {
     inset 0 1px 0 rgba(255, 252, 229, 0.48),
     0 0 24px rgba(237, 155, 45, 0.42),
     0 16px 26px rgba(0, 0, 0, 0.36);
+}
+
+.control-button--inline-primary {
+  min-height: 42px;
+  font-size: 0.94rem;
 }
 
 .control-button:disabled {

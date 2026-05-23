@@ -210,6 +210,7 @@
   let stageFx = { type: "idle", paletteKey: "crystal", token: 0 };
   let stageFxTimer = null;
   const sfxPlayers = {};
+  let basePage = 0;
 
   function initialState() {
     return {
@@ -363,6 +364,13 @@
   }
 
   function addBase(baseId) {
+    var baseIndex = BASES.findIndex(function (item) {
+      return item.id === baseId;
+    });
+    if (baseIndex >= 0) {
+      basePage = Math.floor(baseIndex / 3);
+    }
+
     setState(function (current) {
       var next = cloneState(current);
       if (!next.baseSelection || next.baseSelection.id !== baseId) {
@@ -853,12 +861,6 @@
     var palette = PALETTES[mix.paletteKey] || PALETTES.crystal;
     var accentPalette = PALETTES[finalVisual.accentPalette] || palette;
     var isWaitingShake = state.currentStep === "method" && state.methodSelection === "shaken" && !state.methodReady;
-    var tray = state.flavorSelections.length
-      ? state.flavorSelections.map(function (id) {
-          var item = FLAVORS.find(function (flavor) { return flavor.id === id; });
-          return `<span class="tray-pill tray-pill--${item.accent}">${item.name}</span>`;
-        }).join("")
-      : '<span class="tray-pill tray-pill--empty">还没有选择风味材料</span>';
 
     var bubbles = new Array(mix.bubbleLevel * 3).fill(0).map(function (_, index) {
       return `<span class="bubble" style="--bubble-left:${18 + ((index * 19) % 54)}%;--bubble-delay:${index * 190}ms;--bubble-size:${5 + (index % 3) * 2}px;--bubble-rise:${54 + (index % 3) * 15}px;"></span>`;
@@ -866,10 +868,6 @@
 
     var ice = new Array(mix.iceLevel).fill(0).map(function (_, index) {
       return `<span class="ice-block" style="--ice-left:${18 + index * 18}%;--ice-delay:${index * 220}ms;--ice-rotate:${-7 + index * 6}deg;"></span>`;
-    }).join("");
-
-    var garnish = finalVisual.garnishes.map(function (item) {
-      return `<span class="garnish-pill garnish-pill--${item.accent}">${item.garnish}</span>`;
     }).join("");
 
     var selectedSummary = [];
@@ -929,10 +927,6 @@
           <p class="stage-copy__hint">${step.helper}</p>
           <div class="stage-copy__status">${stageStatusMarkup}</div>
         </div>
-        <div class="flavor-tray">
-          <p class="flavor-tray__title">风味托盘</p>
-          <div class="flavor-tray__items">${tray}</div>
-        </div>
         ${pourFx}
         <div class="glass-zone">
           <div class="glass-pedestal"></div>
@@ -953,7 +947,6 @@
             <div class="glass__spark glass__spark--a"></div>
             <div class="glass__spark glass__spark--b"></div>
           </div>
-          <div class="garnish-row">${garnish}</div>
         </div>
         ${shakePrompt}
       </div>
@@ -967,12 +960,31 @@
     }
 
     var items = "";
+    var footer = "";
 
     if (state.currentStep === "base") {
-      items = BASES.map(function (item) {
+      var pageSize = 3;
+      var totalPages = Math.max(1, Math.ceil(BASES.length / pageSize));
+      var safePage = clamp(basePage, 0, totalPages - 1);
+      basePage = safePage;
+      var pageItems = BASES.slice(safePage * pageSize, safePage * pageSize + pageSize);
+      items = pageItems.map(function (item) {
         var pours = state.baseSelection && state.baseSelection.id === item.id ? state.baseSelection.pours : 0;
         return optionCard(item.id, item.name, pours ? pours + " 份" : "点击加入", "base", pours > 0, item.icon);
       }).join("");
+      if (totalPages > 1) {
+        footer = `
+          <div class="option-pager">
+            <button type="button" class="option-pager__arrow" data-action="base-page-prev" ${safePage <= 0 ? "disabled" : ""} aria-label="上一批基酒">‹</button>
+            <div class="option-pager__dots">
+              ${new Array(totalPages).fill(0).map(function (_, index) {
+                return `<span class="option-pager__dot ${index === safePage ? "option-pager__dot--active" : ""}"></span>`;
+              }).join("")}
+            </div>
+            <button type="button" class="option-pager__arrow" data-action="base-page-next" ${safePage >= totalPages - 1 ? "disabled" : ""} aria-label="下一批基酒">›</button>
+          </div>
+        `;
+      }
     }
 
     if (state.currentStep === "mixer") {
@@ -1008,6 +1020,7 @@
       <div class="sheet sheet--${step.id}">
         <p class="sheet__subtitle">${step.helper}</p>
         <div class="option-grid">${items}</div>
+        ${footer}
       </div>
     `;
   }
@@ -1208,10 +1221,10 @@
     mounts.controls.innerHTML = `
       <div class="control-strip">
         <button type="button" class="control-button control-button--ghost" data-action="prev" ${index <= 0 ? "disabled" : ""}>← 上一步</button>
-        <button type="button" class="control-button control-button--ghost" data-action="undo" ${state.actionHistory.length ? "" : "disabled"}>↻ 撤销上一份</button>
+        <button type="button" class="control-button control-button--ghost" data-action="undo" ${state.actionHistory.length ? "" : "disabled"}>↻ 撤销</button>
+        <button type="button" class="control-button control-button--primary control-button--inline-primary" data-action="next" ${canProceed() ? "" : "disabled"}>${index >= STEPS.length - 1 ? "完成海报" : "下一步 →"}</button>
         <button type="button" class="control-button control-button--ghost control-button--danger" data-action="reset">重置 ↺</button>
       </div>
-      <button type="button" class="control-button control-button--primary" data-action="next" ${canProceed() ? "" : "disabled"}>${index >= STEPS.length - 1 ? "完成海报" : "下一步 →"}</button>
     `;
   }
 
@@ -1275,6 +1288,22 @@
         selectGlass(id);
       }
       return;
+    }
+
+    var pagerAction = event.target.closest("[data-action]");
+    if (pagerAction) {
+      var action = pagerAction.getAttribute("data-action");
+      var totalBasePages = Math.max(1, Math.ceil(BASES.length / 3));
+      if (action === "base-page-prev") {
+        basePage = clamp(basePage - 1, 0, totalBasePages - 1);
+        render();
+        return;
+      }
+      if (action === "base-page-next") {
+        basePage = clamp(basePage + 1, 0, totalBasePages - 1);
+        render();
+        return;
+      }
     }
 
     var themeButton = event.target.closest("[data-theme-id]");

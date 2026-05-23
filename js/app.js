@@ -2,6 +2,13 @@
   const APP_TITLE = "调酒实验室";
   const ERROR_MESSAGE = "哎呀，出错了，请重启试试吧~";
   const STORAGE_KEY = "cocktail-lab-state";
+  const SOUND_ROOT = "./audio";
+  const SOUND_EFFECTS = {
+    addWater: SOUND_ROOT + "/加水.mp3",
+    addIce: SOUND_ROOT + "/丢入冰块.mp3",
+    addFruit: SOUND_ROOT + "/加水果.mp3",
+    shake: SOUND_ROOT + "/摇晃.mp3",
+  };
 
   const LIMITS = {
     basePours: { min: 1, max: 4 },
@@ -72,6 +79,102 @@
     { id: "ocean-dream", name: "海洋蓝绿", background: "linear-gradient(180deg, rgba(7,22,27,0.14), rgba(16,84,92,0.36))" },
   ];
 
+  const POSTER_IMAGE_ROOT = "./images/finished-cocktails-webp";
+  const POSTER_COLOR_LABELS = {
+    orange: "橙",
+    pink: "粉",
+    purple: "紫",
+    amber: "琥珀",
+    yellow: "黄",
+  };
+  const POSTER_COLOR_FOLDERS = {
+    orange: "橙色",
+    pink: "粉色",
+    purple: "紫色",
+    amber: "琥珀色",
+    yellow: "黄色",
+  };
+  const POSTER_COLOR_TIEBREAK = ["purple", "pink", "orange", "amber", "yellow"];
+  const POSTER_FALLBACK_CATEGORY_BY_PALETTE = {
+    crystal: "yellow",
+    lime: "yellow",
+    amber: "amber",
+    tea: "amber",
+    berry: "pink",
+    sunset: "orange",
+    cola: "amber",
+    ocean: "purple",
+  };
+  const POSTER_COLOR_WEIGHTS = {
+    base: {
+      gin: { yellow: 3 },
+      rum: { amber: 4, orange: 1 },
+      vodka: { yellow: 3, pink: 1 },
+      tequila: { orange: 4, yellow: 1 },
+      whiskey: { amber: 5, orange: 1 },
+      "sparkling-water": { yellow: 3 },
+    },
+    mixer: {
+      syrup: { amber: 2, yellow: 1 },
+      bitters: { amber: 2 },
+      soda: { yellow: 3 },
+      cola: { amber: 4 },
+      tea: { amber: 3 },
+      ice: { yellow: 1 },
+    },
+    flavor: {
+      lemon: { yellow: 4 },
+      lime: { yellow: 4 },
+      orange: { orange: 5 },
+      peach: { orange: 4, pink: 1 },
+      strawberry: { pink: 5 },
+      cranberry: { pink: 4, purple: 1 },
+      pineapple: { yellow: 4, orange: 1 },
+      blueberry: { purple: 5, pink: 1 },
+    },
+  };
+  const POSTER_GLASS_MATCH = {
+    highball: ["柯林杯", "飓风杯", "香槟杯"],
+    rocks: ["古典杯", "柯林杯"],
+    martini: ["马天尼杯", "香槟杯", "玛格丽特杯"],
+    champagne: ["香槟杯", "马天尼杯", "柯林杯"],
+    goblet: ["飓风杯", "玛格丽特杯", "香槟杯", "柯林杯"],
+  };
+  const POSTER_IMAGE_MANIFEST = {
+    橙色: {
+      古典杯: "橙色/橙色-古典杯-s02_r2c1.png",
+      柯林杯: "橙色/橙色-柯林杯-s04_r1c1.png",
+      玛格丽特杯: "橙色/橙色-玛格丽特杯-s01_r1c2.png",
+      香槟杯: "橙色/橙色-香槟杯-s01_r3c2.png",
+      马天尼杯: "橙色/橙色-马天尼杯-s05_r3c3.png",
+    },
+    琥珀色: {
+      古典杯: "琥珀色/琥珀色-古典杯-s01_r2c1.png",
+      柯林杯: "琥珀色/琥珀色-柯林杯-s02_r1c1.png",
+      香槟杯: "琥珀色/琥珀色-香槟杯-s04_r2c3.png",
+      马天尼杯: "琥珀色/琥珀色-马天尼杯-s09_r3c3.png",
+    },
+    粉色: {
+      古典杯: "粉色/粉色-古典杯-s06_r2c1.png",
+      柯林杯: "粉色/粉色-柯林杯-s06_r1c1.png",
+      玛格丽特杯: "粉色/粉色-玛格丽特杯-s01_r3c1.png",
+      飓风杯: "粉色/粉色-飓风杯-s01_r2c2.png",
+      香槟杯: "粉色/粉色-香槟杯-s03_r2c3.png",
+      马天尼杯: "粉色/粉色-马天尼杯-s01_r3c3.png",
+    },
+    紫色: {
+      柯林杯: "紫色/紫色-柯林杯-s03_r1c1.png",
+      飓风杯: "紫色/紫色-飓风杯-s03_r2c2.png",
+    },
+    黄色: {
+      柯林杯: "黄色/黄色-柯林杯-s01_r1c3.png",
+      玛格丽特杯: "黄色/黄色-玛格丽特杯-s03_r1c2.png",
+      飓风杯: "黄色/黄色-飓风杯-s07_r2c2.png",
+      香槟杯: "黄色/黄色-香槟杯-s01_r2c3.png",
+      马天尼杯: "黄色/黄色-马天尼杯-s02_r3c3.png",
+    },
+  };
+
   const PALETTES = {
     crystal: { top: "#effcff", mid: "#d8f4ff", deep: "#89c7d5", bubble: "#ffffff" },
     lime: { top: "#e4f8af", mid: "#9cda74", deep: "#4f8f3f", bubble: "#f8ffe7" },
@@ -106,6 +209,7 @@
   let posterModalOpen = false;
   let stageFx = { type: "idle", paletteKey: "crystal", token: 0 };
   let stageFxTimer = null;
+  const sfxPlayers = {};
 
   function initialState() {
     return {
@@ -196,6 +300,38 @@
     return true;
   }
 
+  function playSoundEffect(key) {
+    var src = SOUND_EFFECTS[key];
+    if (!src) {
+      return;
+    }
+    try {
+      if (!sfxPlayers[key]) {
+        sfxPlayers[key] = new Audio(src);
+        sfxPlayers[key].preload = "auto";
+      }
+      var player = sfxPlayers[key];
+      player.currentTime = 0;
+      var playPromise = player.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(function () {});
+      }
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  function soundForBase(baseId) {
+    return "addWater";
+  }
+
+  function soundForMixer(mixerId) {
+    if (mixerId === "ice") {
+      return "addIce";
+    }
+    return "addWater";
+  }
+
   function clearStageFx(skipRender) {
     if (stageFxTimer) {
       clearTimeout(stageFxTimer);
@@ -244,6 +380,10 @@
     var base = BASES.find(function (item) {
       return item.id === baseId;
     });
+    var baseSound = soundForBase(baseId);
+    if (baseSound) {
+      playSoundEffect(baseSound);
+    }
     triggerStageFx("pour", base ? base.palette : "crystal", 780);
   }
 
@@ -271,10 +411,15 @@
     var mixer = MIXERS.find(function (item) {
       return item.id === mixerId;
     });
+    var mixerSound = soundForMixer(mixerId);
+    if (mixerSound) {
+      playSoundEffect(mixerSound);
+    }
     triggerStageFx("pour", mixer ? mixer.palette : "crystal", 760);
   }
 
   function toggleFlavor(flavorId) {
+    var shouldPlay = state.flavorSelections.indexOf(flavorId) < 0 && state.flavorSelections.length < LIMITS.flavorKinds;
     setState(function (current) {
       var next = cloneState(current);
       var index = next.flavorSelections.indexOf(flavorId);
@@ -288,6 +433,9 @@
       next.flavorSelections.push(flavorId);
       return next;
     });
+    if (shouldPlay) {
+      playSoundEffect("addFruit");
+    }
   }
 
   function selectMethod(methodId) {
@@ -299,6 +447,7 @@
     });
 
     if (methodId === "shaken") {
+      playSoundEffect("shake");
       startShakeMode();
     } else {
       stopShakeMode();
@@ -530,6 +679,143 @@
     return parts.join(" · ");
   }
 
+  function addPosterColorWeight(scores, weights) {
+    if (!weights) {
+      return;
+    }
+    Object.keys(weights).forEach(function (key) {
+      scores[key] = (scores[key] || 0) + weights[key];
+    });
+  }
+
+  function currentIngredientSignature() {
+    var baseId = state.baseSelection ? state.baseSelection.id : "none";
+    var mixers = state.mixerSelections
+      .map(function (selection) { return selection.id; })
+      .sort()
+      .join(",");
+    var flavors = state.flavorSelections.slice().sort().join(",");
+    return [baseId, mixers, flavors, state.glassSelection || "no-glass"].join("|");
+  }
+
+  function hashString(value) {
+    var hash = 0;
+    for (var index = 0; index < value.length; index += 1) {
+      hash = (hash << 5) - hash + value.charCodeAt(index);
+      hash |= 0;
+    }
+    return Math.abs(hash);
+  }
+
+  function derivePosterColorCategory(mix) {
+    var scores = {
+      orange: 0,
+      pink: 0,
+      purple: 0,
+      amber: 0,
+      yellow: 0,
+    };
+    var selectedIds = [];
+
+    function has(id) {
+      return selectedIds.indexOf(id) >= 0;
+    }
+
+    if (state.baseSelection) {
+      selectedIds.push(state.baseSelection.id);
+      addPosterColorWeight(scores, POSTER_COLOR_WEIGHTS.base[state.baseSelection.id]);
+    }
+
+    state.mixerSelections.forEach(function (selection) {
+      selectedIds.push(selection.id);
+      addPosterColorWeight(scores, POSTER_COLOR_WEIGHTS.mixer[selection.id]);
+    });
+
+    state.flavorSelections.forEach(function (flavorId) {
+      selectedIds.push(flavorId);
+      addPosterColorWeight(scores, POSTER_COLOR_WEIGHTS.flavor[flavorId]);
+    });
+
+    if (has("blueberry")) {
+      scores.purple += 3;
+    }
+    if ((has("cranberry") || has("strawberry")) && has("blueberry")) {
+      scores.purple += 2;
+    }
+    if (has("cranberry") && (has("whiskey") || has("rum") || has("tea") || has("cola") || has("bitters"))) {
+      scores.purple += 2;
+    }
+    if (has("orange") && (has("tequila") || has("rum"))) {
+      scores.orange += 2;
+    }
+    if (has("peach") && has("cranberry")) {
+      scores.pink += 1;
+      scores.orange += 1;
+    }
+    if (has("lemon") && has("lime")) {
+      scores.yellow += 2;
+    }
+    if (has("pineapple") && (has("rum") || has("tequila"))) {
+      scores.yellow += 2;
+      scores.orange += 1;
+    }
+    if (has("syrup") && (has("whiskey") || has("rum"))) {
+      scores.amber += 1;
+    }
+
+    var fallbackCategory = POSTER_FALLBACK_CATEGORY_BY_PALETTE[mix.paletteKey] || "amber";
+    scores[fallbackCategory] += 1;
+
+    return POSTER_COLOR_TIEBREAK.slice().sort(function (a, b) {
+      if (scores[b] !== scores[a]) {
+        return scores[b] - scores[a];
+      }
+      return POSTER_COLOR_TIEBREAK.indexOf(a) - POSTER_COLOR_TIEBREAK.indexOf(b);
+    })[0];
+  }
+
+  function derivePosterAsset(mix, finalVisual) {
+    var colorCategory = derivePosterColorCategory(mix);
+    var folderName = POSTER_COLOR_FOLDERS[colorCategory] || POSTER_COLOR_FOLDERS.amber;
+    var manifest = POSTER_IMAGE_MANIFEST[folderName] || {};
+    var candidateCups = POSTER_GLASS_MATCH[finalVisual.glassId] || [];
+    var filePath = "";
+    var matchedCup = "";
+
+    candidateCups.some(function (cupName) {
+      if (manifest[cupName]) {
+        filePath = manifest[cupName];
+        matchedCup = cupName;
+        return true;
+      }
+      return false;
+    });
+
+    if (!filePath) {
+      var fallbackCup = Object.keys(manifest)[0];
+      if (fallbackCup) {
+        filePath = manifest[fallbackCup];
+        matchedCup = fallbackCup;
+      }
+    }
+
+    if (!filePath) {
+      return {
+        colorCategory: colorCategory,
+        colorLabel: POSTER_COLOR_LABELS[colorCategory] || "琥珀",
+        src: "",
+        cupLabel: labelOf(GLASSES, finalVisual.glassId),
+      };
+    }
+
+    return {
+      colorCategory: colorCategory,
+      colorLabel: POSTER_COLOR_LABELS[colorCategory] || "琥珀",
+      src: encodeURI(POSTER_IMAGE_ROOT + "/" + filePath.replace(/\.(png|jpg|jpeg)$/i, ".webp")),
+      cupLabel: matchedCup || labelOf(GLASSES, finalVisual.glassId),
+    };
+  }
+
   function render() {
     var mix = deriveMix();
     var finalVisual = deriveFinal(mix);
@@ -538,6 +824,7 @@
       return item.id === state.currentStep;
     });
 
+    mounts.app.dataset.step = state.currentStep;
     renderHeader(step);
     renderStage(step, mix, finalVisual);
     renderPanel(step, mix, finalVisual, classic);
@@ -552,6 +839,7 @@
         <div class="topbar__copy">
           <p class="eyebrow">Cocktail Lab</p>
           <h1 class="app-title">${APP_TITLE}</h1>
+          <p class="topbar__helper">${step.helper}</p>
         </div>
         <div class="topbar__step">
           <span class="topbar__step-badge">Step ${index + 1}</span>
@@ -583,6 +871,23 @@
     var garnish = finalVisual.garnishes.map(function (item) {
       return `<span class="garnish-pill garnish-pill--${item.accent}">${item.garnish}</span>`;
     }).join("");
+
+    var selectedSummary = [];
+    if (state.baseSelection) {
+      selectedSummary.push("基酒 " + labelOf(BASES, state.baseSelection.id));
+    }
+    if (state.mixerSelections.length) {
+      selectedSummary.push("辅料 " + state.mixerSelections.length + " 项");
+    }
+    if (state.flavorSelections.length) {
+      selectedSummary.push("风味 " + state.flavorSelections.length + " 项");
+    }
+
+    var stageStatusMarkup = selectedSummary.length
+      ? selectedSummary.map(function (label) {
+          return `<span class="status-chip">${label}</span>`;
+        }).join("")
+      : '<span class="status-chip status-chip--muted">尚未加入任何材料</span>';
 
     var pourFx = stageFx.type === "pour"
       ? `
@@ -618,13 +923,19 @@
       >
         <div class="stage-scene__overlay"></div>
         <div class="stage-scene__glow"></div>
+        <div class="stage-scene__vignette"></div>
         <div class="stage-copy">
-          <p class="stage-copy__step">${step.label}</p>
+          <p class="stage-copy__step">Workbench / ${step.label}</p>
           <p class="stage-copy__hint">${step.helper}</p>
+          <div class="stage-copy__status">${stageStatusMarkup}</div>
         </div>
-        <div class="flavor-tray">${tray}</div>
+        <div class="flavor-tray">
+          <p class="flavor-tray__title">风味托盘</p>
+          <div class="flavor-tray__items">${tray}</div>
+        </div>
         ${pourFx}
         <div class="glass-zone">
+          <div class="glass-pedestal"></div>
           <div class="glass-shadow"></div>
           ${shakerMarkup}
           <div class="glass glass--${finalVisual.glassId}">
@@ -695,9 +1006,7 @@
 
     mounts.panel.innerHTML = `
       <div class="sheet sheet--${step.id}">
-        <div class="sheet__header">
-          <p class="sheet__title">${step.label}</p>
-        </div>
+        <p class="sheet__subtitle">${step.helper}</p>
         <div class="option-grid">${items}</div>
       </div>
     `;
@@ -731,32 +1040,48 @@
             <input type="text" name="signature" maxlength="12" value="${escapeHtml(state.signature)}">
           </label>
           <div class="theme-switch">${themeButtons}</div>
-          <button type="button" class="save-button" data-action="save-poster">保存海报</button>
+          <button type="button" class="save-button" data-action="save-poster">生成海报</button>
         </div>
-        <div class="poster-preview">${posterMarkup(classic)}</div>
       </div>
     `;
   }
 
   function syncPosterPreview() {
-    var preview = mounts.panel.querySelector(".poster-preview");
-    if (!preview || state.currentStep !== "poster") {
-      return;
+    if (posterModalOpen) {
+      renderPosterModal();
     }
-    var classic = findClassic();
-    preview.innerHTML = posterMarkup(classic);
   }
 
   function posterMarkup(classic) {
     var theme = THEMES.find(function (item) {
       return item.id === state.posterTheme;
     }) || THEMES[0];
+    var mix = deriveMix();
+    var finalVisual = deriveFinal(mix);
+    var posterAsset = derivePosterAsset(mix, finalVisual);
+    var posterImage = posterAsset.src
+      ? `
+        <div class="poster-card__visual">
+          <div class="poster-card__image-shell poster-card__image-shell--${posterAsset.colorCategory}">
+            <img class="poster-card__image" src="${posterAsset.src}" alt="${escapeHtml((state.cocktailName || "今夜特调") + " 成品图")}">
+          </div>
+          <p class="poster-card__asset-tag">${posterAsset.colorLabel}调 · ${posterAsset.cupLabel}</p>
+        </div>
+      `
+      : `
+        <div class="poster-card__visual">
+          <div class="poster-card__image-shell poster-card__image-shell--empty">
+            <span class="poster-card__image-fallback">等待成品图</span>
+          </div>
+        </div>
+      `;
     return `
       <article class="poster-card" style="background:${theme.background}">
         <div class="poster-card__glow"></div>
         <p class="poster-card__label">${APP_TITLE}</p>
         <h3 class="poster-card__name">${escapeHtml(state.cocktailName || "今夜特调")}</h3>
         <p class="poster-card__note">${escapeHtml(state.cocktailNote || "一杯属于今晚的自定义风味。")}</p>
+        ${posterImage}
         ${classic ? `<div class="poster-classic">经典款彩蛋：${classic.recipe.name}</div>` : ""}
         <p class="poster-card__recipe">${escapeHtml(recipeSummary())}</p>
         <p class="poster-card__signature">${escapeHtml(state.signature || "由你亲手调制")}</p>
@@ -765,18 +1090,114 @@
   }
 
   function optionCard(id, title, meta, kind, active, iconSrc) {
+    var emblem = optionEmblem(kind, title);
+    var hint = optionHint(kind, id);
     var media = iconSrc
       ? `<span class="option-card__media" aria-hidden="true"><img class="option-card__icon" src="${iconSrc}" alt=""></span>`
-      : "";
+      : `<span class="option-card__media option-card__media--glyph" aria-hidden="true">${emblem}</span>`;
     return `
       <button type="button" class="option-card ${active ? "option-card--active" : ""}" data-kind="${kind}" data-id="${id}">
+        <span class="option-card__badge">${kindLabel(kind)}</span>
+        ${media}
         <span class="option-card__body">
           <span class="option-card__title">${title}</span>
           <span class="option-card__meta">${meta}</span>
+          <span class="option-card__hint">${hint}</span>
         </span>
-        ${media}
       </button>
     `;
+  }
+
+  function panelEyebrow(stepId) {
+    if (stepId === "base") {
+      return "Spirit Archive";
+    }
+    if (stepId === "mixer") {
+      return "Mixer Rack";
+    }
+    if (stepId === "flavor") {
+      return "Flavor Library";
+    }
+    if (stepId === "method") {
+      return "Method Select";
+    }
+    if (stepId === "glass") {
+      return "Serving Vessel";
+    }
+    return "Poster Forge";
+  }
+
+  function panelCounter(stepId) {
+    if (stepId === "base") {
+      return state.baseSelection ? state.baseSelection.pours + " / " + LIMITS.basePours.max + " 份" : "未选择";
+    }
+    if (stepId === "mixer") {
+      return state.mixerSelections.length + " / " + LIMITS.mixerKinds + " 项";
+    }
+    if (stepId === "flavor") {
+      return state.flavorSelections.length + " / " + LIMITS.flavorKinds + " 项";
+    }
+    if (stepId === "method") {
+      return state.methodSelection ? "已锁定" : "待选择";
+    }
+    if (stepId === "glass") {
+      return state.glassSelection ? "已预览" : "待选择";
+    }
+    return "Ready";
+  }
+
+  function kindLabel(kind) {
+    if (kind === "base") {
+      return "SPIRIT";
+    }
+    if (kind === "mixer") {
+      return "MIXER";
+    }
+    if (kind === "flavor") {
+      return "FLAVOR";
+    }
+    if (kind === "method") {
+      return "METHOD";
+    }
+    if (kind === "glass") {
+      return "GLASS";
+    }
+    return "ITEM";
+  }
+
+  function optionHint(kind, id) {
+    if (kind === "base") {
+      return "决定主色、酒体与基底风味";
+    }
+    if (kind === "mixer") {
+      return id === "ice" ? "增强清澈感与冰镇层次" : "改变浓度、气泡与口感";
+    }
+    if (kind === "flavor") {
+      return "用于点亮香气与装饰表达";
+    }
+    if (kind === "method") {
+      return id === "shaken" ? "需要完成一次摇匀动作" : "改变液体表现与气质";
+    }
+    if (kind === "glass") {
+      return "影响成品轮廓与陈列气质";
+    }
+    return "";
+  }
+
+  function optionEmblem(kind, title) {
+    if (kind === "method") {
+      return title.slice(0, 1);
+    }
+    if (kind === "glass") {
+      return "杯";
+    }
+    if (kind === "flavor") {
+      return "味";
+    }
+    if (kind === "mixer") {
+      return "调";
+    }
+    return title.slice(0, 1);
   }
 
   function renderControls() {
@@ -785,10 +1206,12 @@
     });
 
     mounts.controls.innerHTML = `
-      <button type="button" class="control-button control-button--ghost" data-action="prev" ${index <= 0 ? "disabled" : ""}>上一步</button>
-      <button type="button" class="control-button control-button--ghost" data-action="undo" ${state.actionHistory.length ? "" : "disabled"}>撤销上一份</button>
-      <button type="button" class="control-button control-button--ghost" data-action="reset">重置</button>
-      <button type="button" class="control-button" data-action="next" ${canProceed() ? "" : "disabled"}>${index >= STEPS.length - 1 ? "完成海报" : "下一步"}</button>
+      <div class="control-strip">
+        <button type="button" class="control-button control-button--ghost" data-action="prev" ${index <= 0 ? "disabled" : ""}>← 上一步</button>
+        <button type="button" class="control-button control-button--ghost" data-action="undo" ${state.actionHistory.length ? "" : "disabled"}>↻ 撤销上一份</button>
+        <button type="button" class="control-button control-button--ghost control-button--danger" data-action="reset">重置 ↺</button>
+      </div>
+      <button type="button" class="control-button control-button--primary" data-action="next" ${canProceed() ? "" : "disabled"}>${index >= STEPS.length - 1 ? "完成海报" : "下一步 →"}</button>
     `;
   }
 
@@ -862,7 +1285,7 @@
 
     var saveButton = event.target.closest('[data-action="save-poster"]');
     if (saveButton) {
-      exportPoster();
+      openPosterModal();
     }
   }
 
@@ -921,9 +1344,12 @@
     render();
   }
 
-  function exportPoster() {
+  async function exportPoster() {
     try {
       var theme = THEMES.find(function (item) { return item.id === state.posterTheme; }) || THEMES[0];
+      var mix = deriveMix();
+      var finalVisual = deriveFinal(mix);
+      var posterAsset = derivePosterAsset(mix, finalVisual);
       var canvas = document.createElement("canvas");
       var ctx = canvas.getContext("2d");
       canvas.width = 1080;
@@ -943,9 +1369,25 @@
       ctx.fillText(state.cocktailName || "今夜特调", 96, 300, 860);
       ctx.font = "36px sans-serif";
       wrapText(ctx, state.cocktailNote || "一杯属于今晚的自定义风味。", 96, 390, 860, 56);
+
+      ctx.save();
+      ctx.translate(540, 980);
+      ctx.fillStyle = "rgba(255, 214, 158, 0.18)";
+      ctx.beginPath();
+      ctx.ellipse(0, 360, 250, 56, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      if (posterAsset.src) {
+        var image = await loadImage(posterAsset.src);
+        drawPosterImage(ctx, image, 150, 520, 780, 840);
+      }
+
       ctx.font = "30px sans-serif";
-      wrapText(ctx, recipeSummary(), 96, 560, 860, 44);
+      ctx.fillStyle = "rgba(247, 232, 203, 0.82)";
+      wrapText(ctx, recipeSummary(), 96, 1490, 860, 44);
       ctx.font = "bold 34px sans-serif";
+      ctx.fillStyle = "#f7e8cb";
       ctx.fillText(state.signature || "由你亲手调制", 96, 1790, 860);
 
       var link = document.createElement("a");
@@ -955,6 +1397,49 @@
     } catch (error) {
       showError(error);
     }
+  }
+
+  function loadImage(src) {
+    return new Promise(function (resolve, reject) {
+      var image = new Image();
+      image.onload = function () {
+        resolve(image);
+      };
+      image.onerror = reject;
+      image.src = src;
+    });
+  }
+
+  function drawPosterImage(ctx, image, x, y, width, height) {
+    var scale = Math.min(width / image.width, height / image.height);
+    var drawWidth = image.width * scale;
+    var drawHeight = image.height * scale;
+    var drawX = x + (width - drawWidth) / 2;
+    var drawY = y + (height - drawHeight) / 2;
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(255, 235, 199, 0.12)";
+    ctx.lineWidth = 2;
+    roundRect(ctx, x + 18, y + 14, width - 36, height - 28, 34);
+    ctx.stroke();
+    ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+    ctx.shadowBlur = 36;
+    ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+    ctx.restore();
+  }
+
+  function roundRect(ctx, x, y, width, height, radius) {
+    ctx.beginPath();
+    ctx.moveTo(x + radius, y);
+    ctx.lineTo(x + width - radius, y);
+    ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+    ctx.lineTo(x + width, y + height - radius);
+    ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+    ctx.lineTo(x + radius, y + height);
+    ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+    ctx.lineTo(x, y + radius);
+    ctx.quadraticCurveTo(x, y, x + radius, y);
+    ctx.closePath();
   }
 
   async function startShakeMode() {
@@ -1000,6 +1485,7 @@
 
   function completeShake() {
     stopShakeMode();
+    playSoundEffect("shake");
     setState(function (current) {
       var next = cloneState(current);
       next.methodReady = true;
@@ -1051,12 +1537,28 @@
     }
   }
 
+  function updateViewportScale() {
+    var designWidth = 480;
+    var designHeight = 960;
+    var viewportWidth = window.visualViewport ? window.visualViewport.width : window.innerWidth;
+    var viewportHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+    var fittedScale = Math.min(viewportWidth / designWidth, viewportHeight / designHeight, 1);
+    var scale = fittedScale < 1 ? fittedScale * 0.96 : 1;
+    document.documentElement.style.setProperty("--ui-scale", String(scale));
+  }
+
   try {
+    updateViewportScale();
     mounts.panel.addEventListener("click", handlePanelClick);
     mounts.panel.addEventListener("input", handlePanelInput);
     mounts.controls.addEventListener("click", handleControlClick);
     mounts.stage.addEventListener("click", handleControlClick);
     mounts.modal.addEventListener("click", handleControlClick);
+    window.addEventListener("resize", updateViewportScale);
+    window.addEventListener("orientationchange", updateViewportScale);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", updateViewportScale);
+    }
     render();
   } catch (error) {
     showError(error);

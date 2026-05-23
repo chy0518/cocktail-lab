@@ -209,6 +209,43 @@ button {
   display: grid;
   gap: 8px;
   justify-items: end;
+  pointer-events: auto;
+}
+
+.topbar__cellar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 208, 112, 0.34);
+  background:
+    linear-gradient(180deg, rgba(26, 21, 16, 0.92), rgba(9, 8, 6, 0.98)),
+    rgba(9, 8, 6, 0.98);
+  color: var(--text-main);
+  font-size: 0.82rem;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 218, 0.08),
+    0 8px 18px rgba(0, 0, 0, 0.32);
+  transition:
+    transform 180ms var(--ease-out),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.topbar__cellar-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 213, 128, 0.14);
+  color: #ffdf9e;
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .topbar__step-badge,
@@ -1385,6 +1422,16 @@ button {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .topbar__cellar:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 213, 128, 0.54);
+    filter: brightness(1.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 245, 218, 0.12),
+      0 0 18px rgba(231, 172, 75, 0.12),
+      0 12px 24px rgba(0, 0, 0, 0.34);
+  }
+
   .control-button:hover:not(:disabled) {
     transform: translateY(-2px);
     filter: saturate(1.06) brightness(1.04);
@@ -1511,6 +1558,16 @@ button {
   overflow: hidden;
 }
 
+.poster-modal__card--cellar {
+  width: min(100%, 452px);
+  max-height: min(92dvh, 920px);
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.poster-modal__card--detail {
+  width: min(100%, 438px);
+}
+
 .poster-modal__close {
   position: absolute;
   top: 10px;
@@ -1537,6 +1594,133 @@ button {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.cellar-modal__header {
+  display: grid;
+  gap: 6px;
+}
+
+.cellar-modal__title {
+  font-size: 1.16rem;
+  color: #fff1cf;
+}
+
+.cellar-modal__helper {
+  color: rgba(247, 234, 211, 0.72);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.cellar-grid {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-right: 4px;
+}
+
+.cellar-card {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 236, 206, 0.08);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 188, 92, 0.08), transparent 42%),
+    linear-gradient(180deg, rgba(35, 25, 17, 0.96), rgba(13, 10, 7, 0.98));
+  color: var(--text-main);
+  text-align: left;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 24px rgba(0, 0, 0, 0.22);
+  transition:
+    transform 180ms var(--ease-out),
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    filter 180ms ease;
+}
+
+.cellar-card__thumb {
+  min-height: 138px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 238, 213, 0.08);
+  background:
+    radial-gradient(circle at 50% 86%, rgba(255, 217, 145, 0.2), transparent 32%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(0, 0, 0, 0.14));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.cellar-card__image {
+  width: 100%;
+  max-width: 118px;
+  max-height: 126px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 16px 16px rgba(0, 0, 0, 0.46))
+    drop-shadow(0 6px 10px rgba(255, 218, 156, 0.08));
+}
+
+.cellar-card__fallback {
+  color: rgba(247, 234, 211, 0.56);
+  font-size: 0.8rem;
+}
+
+.cellar-card__body {
+  display: grid;
+  gap: 4px;
+}
+
+.cellar-card__name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #fff1cf;
+}
+
+.cellar-card__meta {
+  color: rgba(247, 234, 211, 0.68);
+  font-size: 0.76rem;
+}
+
+.cellar-empty {
+  min-height: 220px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px dashed rgba(255, 231, 181, 0.18);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: center;
+}
+
+.cellar-empty__title {
+  font-size: 1rem;
+  color: #fff1cf;
+}
+
+.cellar-empty__text {
+  max-width: 240px;
+  color: rgba(247, 234, 211, 0.68);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cellar-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 213, 128, 0.46);
+    filter: saturate(1.04);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      0 0 18px rgba(231, 172, 75, 0.12),
+      0 18px 30px rgba(0, 0, 0, 0.26);
+  }
 }
 
 .hidden {

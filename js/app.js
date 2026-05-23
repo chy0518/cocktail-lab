@@ -2,6 +2,7 @@
   const APP_TITLE = "调酒实验室";
   const ERROR_MESSAGE = "哎呀，出错了，请重启试试吧~";
   const STORAGE_KEY = "cocktail-lab-state";
+  const CELLAR_STORAGE_KEY = "cocktail-lab-cellar";
   const SOUND_ROOT = "./audio";
   const SOUND_EFFECTS = {
     addWater: SOUND_ROOT + "/加水.mp3",
@@ -206,11 +207,12 @@
 
   let state = loadState();
   let shakeListening = false;
-  let posterModalOpen = false;
+  let modalState = { type: null, recordId: null };
   let stageFx = { type: "idle", paletteKey: "crystal", token: 0 };
   let stageFxTimer = null;
   const sfxPlayers = {};
   let basePage = 0;
+  let cellar = loadCellar();
 
   function initialState() {
     return {
@@ -266,6 +268,24 @@
   function saveState() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  function loadCellar() {
+    try {
+      var raw = localStorage.getItem(CELLAR_STORAGE_KEY);
+      var parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function saveCellar() {
+    try {
+      localStorage.setItem(CELLAR_STORAGE_KEY, JSON.stringify(cellar));
     } catch (error) {
       console.warn(error);
     }
@@ -516,7 +536,7 @@
     }
     saveState();
     syncPosterPreview();
-    renderPosterModal();
+    renderModal();
   }
 
   function setPosterTheme(themeId) {
@@ -529,11 +549,46 @@
 
   function resetAll() {
     stopShakeMode();
-    posterModalOpen = false;
+    modalState = { type: null, recordId: null };
     clearStageFx(true);
     state = initialState();
+    basePage = 0;
     saveState();
     render();
+  }
+
+  function startNewRound() {
+    stopShakeMode();
+    modalState = { type: null, recordId: null };
+    clearStageFx(true);
+    state = initialState();
+    basePage = 0;
+    saveState();
+    render();
+  }
+
+  function snapshotState() {
+    return cloneState(state);
+  }
+
+  function cocktailFingerprint(sourceState) {
+    var parts = [];
+    parts.push(sourceState.baseSelection ? sourceState.baseSelection.id + ":" + sourceState.baseSelection.pours : "none");
+    parts.push(
+      sourceState.mixerSelections
+        .slice()
+        .sort(function (a, b) { return a.id.localeCompare(b.id); })
+        .map(function (item) { return item.id + ":" + item.pours; })
+        .join(","),
+    );
+    parts.push(sourceState.flavorSelections.slice().sort().join(","));
+    parts.push(sourceState.methodSelection || "none");
+    parts.push(sourceState.glassSelection || "none");
+    parts.push(sourceState.posterTheme || "warm-night");
+    parts.push(sourceState.cocktailName || "");
+    parts.push(sourceState.cocktailNote || "");
+    parts.push(sourceState.signature || "");
+    return parts.join("|");
   }
 
   function deriveMix() {
@@ -824,6 +879,55 @@
     };
   }
 
+  function posterRecordFromState(sourceState) {
+    var prevState = state;
+    state = normalizeState(sourceState);
+    var mix = deriveMix();
+    var finalVisual = deriveFinal(mix);
+    var classic = findClassic();
+    var posterAsset = derivePosterAsset(mix, finalVisual);
+    var record = {
+      id: "cocktail-" + Date.now() + "-" + hashString(cocktailFingerprint(state)).toString(36),
+      fingerprint: cocktailFingerprint(state),
+      createdAt: new Date().toISOString(),
+      posterTheme: state.posterTheme,
+      cocktailName: state.cocktailName || "今夜特调",
+      cocktailNote: state.cocktailNote || "一杯属于今晚的自定义风味。",
+      signature: state.signature || "由你亲手调制",
+      posterAsset: posterAsset,
+      recipe: recipeSummary(),
+      classicName: classic ? classic.recipe.name : "",
+      snapshot: snapshotState(),
+    };
+    state = prevState;
+    return record;
+  }
+
+  function upsertCellarRecord(record) {
+    var existingIndex = cellar.findIndex(function (item) {
+      return item.fingerprint === record.fingerprint;
+    });
+    if (existingIndex >= 0) {
+      cellar[existingIndex] = Object.assign({}, cellar[existingIndex], record, { id: cellar[existingIndex].id });
+      var updated = cellar.splice(existingIndex, 1)[0];
+      cellar.unshift(updated);
+      saveCellar();
+      return updated;
+    }
+    cellar.unshift(record);
+    cellar = cellar.slice(0, 24);
+    saveCellar();
+    return record;
+  }
+
+  function currentPosterRecord() {
+    return posterRecordFromState(snapshotState());
+  }
+
+  function syncCurrentCocktailToCellar() {
+    return upsertCellarRecord(currentPosterRecord());
+  }
+
   function render() {
     var mix = deriveMix();
     var finalVisual = deriveFinal(mix);
@@ -837,7 +941,7 @@
     renderStage(step, mix, finalVisual);
     renderPanel(step, mix, finalVisual, classic);
     renderControls();
-    renderPosterModal();
+    renderModal();
   }
 
   function renderHeader(step) {
@@ -850,6 +954,7 @@
           <p class="topbar__helper">${step.helper}</p>
         </div>
         <div class="topbar__step">
+          <button type="button" class="topbar__cellar" data-action="open-cellar">酒单 ${cellar.length ? '<span class="topbar__cellar-count">' + cellar.length + '</span>' : ""}</button>
           <span class="topbar__step-badge">Step ${index + 1}</span>
           <span class="topbar__step-label">${step.label}</span>
         </div>
@@ -1060,23 +1165,21 @@
   }
 
   function syncPosterPreview() {
-    if (posterModalOpen) {
-      renderPosterModal();
+    if (modalState.type === "poster") {
+      renderModal();
     }
   }
 
-  function posterMarkup(classic) {
+  function posterMarkup(record) {
     var theme = THEMES.find(function (item) {
-      return item.id === state.posterTheme;
+      return item.id === record.posterTheme;
     }) || THEMES[0];
-    var mix = deriveMix();
-    var finalVisual = deriveFinal(mix);
-    var posterAsset = derivePosterAsset(mix, finalVisual);
+    var posterAsset = record.posterAsset || { src: "", colorCategory: "amber", colorLabel: "琥珀", cupLabel: "" };
     var posterImage = posterAsset.src
       ? `
         <div class="poster-card__visual">
           <div class="poster-card__image-shell poster-card__image-shell--${posterAsset.colorCategory}">
-            <img class="poster-card__image" src="${posterAsset.src}" alt="${escapeHtml((state.cocktailName || "今夜特调") + " 成品图")}">
+            <img class="poster-card__image" src="${posterAsset.src}" alt="${escapeHtml((record.cocktailName || "今夜特调") + " 成品图")}">
           </div>
           <p class="poster-card__asset-tag">${posterAsset.colorLabel}调 · ${posterAsset.cupLabel}</p>
         </div>
@@ -1092,12 +1195,12 @@
       <article class="poster-card" style="background:${theme.background}">
         <div class="poster-card__glow"></div>
         <p class="poster-card__label">${APP_TITLE}</p>
-        <h3 class="poster-card__name">${escapeHtml(state.cocktailName || "今夜特调")}</h3>
-        <p class="poster-card__note">${escapeHtml(state.cocktailNote || "一杯属于今晚的自定义风味。")}</p>
+        <h3 class="poster-card__name">${escapeHtml(record.cocktailName || "今夜特调")}</h3>
+        <p class="poster-card__note">${escapeHtml(record.cocktailNote || "一杯属于今晚的自定义风味。")}</p>
         ${posterImage}
-        ${classic ? `<div class="poster-classic">经典款彩蛋：${classic.recipe.name}</div>` : ""}
-        <p class="poster-card__recipe">${escapeHtml(recipeSummary())}</p>
-        <p class="poster-card__signature">${escapeHtml(state.signature || "由你亲手调制")}</p>
+        ${record.classicName ? `<div class="poster-classic">经典款彩蛋：${record.classicName}</div>` : ""}
+        <p class="poster-card__recipe">${escapeHtml(record.recipe || "")}</p>
+        <p class="poster-card__signature">${escapeHtml(record.signature || "由你亲手调制")}</p>
       </article>
     `;
   }
@@ -1229,42 +1332,114 @@
   }
 
   function openPosterModal() {
-    posterModalOpen = true;
-    renderPosterModal();
+    var record = syncCurrentCocktailToCellar();
+    modalState = { type: "poster", recordId: record.id };
+    render();
   }
 
-  function closePosterModal() {
-    posterModalOpen = false;
-    renderPosterModal();
+  function openCellarModal() {
+    modalState = { type: "cellar", recordId: null };
+    render();
   }
 
-  function renderPosterModal() {
+  function openCellarDetail(recordId) {
+    modalState = { type: "cellar-detail", recordId: recordId };
+    render();
+  }
+
+  function closeModal() {
+    modalState = { type: null, recordId: null };
+    render();
+  }
+
+  function renderCellarModal() {
+    var cards = cellar.length
+      ? cellar.map(function (record) {
+          return `
+            <button type="button" class="cellar-card" data-action="open-cellar-detail" data-record-id="${record.id}">
+              <span class="cellar-card__thumb">
+                ${record.posterAsset && record.posterAsset.src
+                  ? `<img class="cellar-card__image" src="${record.posterAsset.src}" alt="${escapeHtml(record.cocktailName)}">`
+                  : `<span class="cellar-card__fallback">待生成</span>`}
+              </span>
+              <span class="cellar-card__body">
+                <span class="cellar-card__name">${escapeHtml(record.cocktailName)}</span>
+                <span class="cellar-card__meta">${escapeHtml(((record.posterAsset && record.posterAsset.colorLabel) || "琥珀") + "调 · " + ((record.posterAsset && record.posterAsset.cupLabel) || "杯型未定"))}</span>
+              </span>
+            </button>
+          `;
+        }).join("")
+      : `
+        <div class="cellar-empty">
+          <p class="cellar-empty__title">你的酒单还空着</p>
+          <p class="cellar-empty__text">完成一杯属于自己的酒，它就会被收进这里。</p>
+        </div>
+      `;
+    return `
+      <div class="poster-modal__backdrop" data-action="close-modal"></div>
+      <div class="poster-modal__card poster-modal__card--cellar">
+        <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+        <p class="poster-modal__eyebrow">个人酒单</p>
+        <div class="cellar-modal__header">
+          <h3 class="cellar-modal__title">调出过的气质之酒</h3>
+          <p class="cellar-modal__helper">每一杯都保留了你当时写下的名字、心情和海报。</p>
+        </div>
+        <div class="cellar-grid">${cards}</div>
+      </div>
+    `;
+  }
+
+  function renderCellarDetailModal(record) {
+    return `
+      <div class="poster-modal__backdrop" data-action="close-modal"></div>
+      <div class="poster-modal__card poster-modal__card--detail">
+        <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+        <p class="poster-modal__eyebrow">酒单收藏</p>
+        <div class="poster-modal__preview">${posterMarkup(record)}</div>
+        <div class="poster-modal__actions">
+          <button type="button" class="control-button control-button--ghost" data-action="back-to-cellar">返回酒单</button>
+          <button type="button" class="control-button" data-action="save-poster-modal">保存海报</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderModal() {
     if (!mounts.modal) {
       return;
     }
 
-    if (!posterModalOpen) {
+    if (!modalState.type) {
       mounts.modal.classList.add("hidden");
       mounts.modal.setAttribute("aria-hidden", "true");
       mounts.modal.innerHTML = "";
       return;
     }
-
-    var classic = findClassic();
     mounts.modal.classList.remove("hidden");
     mounts.modal.setAttribute("aria-hidden", "false");
-    mounts.modal.innerHTML = `
-      <div class="poster-modal__backdrop" data-action="close-poster-modal"></div>
-      <div class="poster-modal__card">
-        <button type="button" class="poster-modal__close" data-action="close-poster-modal" aria-label="关闭">×</button>
-        <p class="poster-modal__eyebrow">完成海报</p>
-        <div class="poster-modal__preview">${posterMarkup(classic)}</div>
-        <div class="poster-modal__actions">
-          <button type="button" class="control-button control-button--ghost" data-action="close-poster-modal">继续调整</button>
-          <button type="button" class="control-button" data-action="save-poster-modal">保存海报</button>
+    if (modalState.type === "poster") {
+      mounts.modal.innerHTML = `
+        <div class="poster-modal__backdrop" data-action="close-modal"></div>
+        <div class="poster-modal__card">
+          <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+          <p class="poster-modal__eyebrow">完成海报</p>
+          <div class="poster-modal__preview">${posterMarkup(currentPosterRecord())}</div>
+          <div class="poster-modal__actions">
+            <button type="button" class="control-button control-button--ghost" data-action="new-round">再来一杯</button>
+            <button type="button" class="control-button" data-action="save-poster-modal">保存海报</button>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+      return;
+    }
+    if (modalState.type === "cellar") {
+      mounts.modal.innerHTML = renderCellarModal();
+      return;
+    }
+    if (modalState.type === "cellar-detail") {
+      var record = cellar.find(function (item) { return item.id === modalState.recordId; });
+      mounts.modal.innerHTML = record ? renderCellarDetailModal(record) : renderCellarModal();
+    }
   }
 
   function handlePanelClick(event) {
@@ -1350,12 +1525,44 @@
     if (action === "complete-shake") {
       completeShake();
     }
-    if (action === "close-poster-modal") {
-      closePosterModal();
+    if (action === "close-modal") {
+      closeModal();
+    }
+    if (action === "new-round") {
+      startNewRound();
+    }
+    if (action === "back-to-cellar") {
+      openCellarModal();
     }
     if (action === "save-poster-modal") {
-      exportPoster();
+      var record = modalState.type === "cellar-detail"
+        ? cellar.find(function (item) { return item.id === modalState.recordId; })
+        : null;
+      exportPoster(record || undefined);
     }
+  }
+
+  function handleHeaderClick(event) {
+    var button = event.target.closest("[data-action]");
+    if (!button) {
+      return;
+    }
+    if (button.getAttribute("data-action") === "open-cellar") {
+      openCellarModal();
+    }
+  }
+
+  function handleModalClick(event) {
+    var button = event.target.closest("[data-action]");
+    if (!button) {
+      return;
+    }
+    var action = button.getAttribute("data-action");
+    if (action === "open-cellar-detail") {
+      openCellarDetail(button.getAttribute("data-record-id"));
+      return;
+    }
+    handleControlClick(event);
   }
 
   function moveStep(offset) {
@@ -1366,19 +1573,18 @@
     if (nextIndex === index) {
       return;
     }
-    posterModalOpen = false;
+    modalState = { type: null, recordId: null };
     clearStageFx(true);
     state.currentStep = STEPS[nextIndex].id;
     saveState();
     render();
   }
 
-  async function exportPoster() {
+  async function exportPoster(record) {
     try {
-      var theme = THEMES.find(function (item) { return item.id === state.posterTheme; }) || THEMES[0];
-      var mix = deriveMix();
-      var finalVisual = deriveFinal(mix);
-      var posterAsset = derivePosterAsset(mix, finalVisual);
+      var activeRecord = record || syncCurrentCocktailToCellar();
+      var theme = THEMES.find(function (item) { return item.id === activeRecord.posterTheme; }) || THEMES[0];
+      var posterAsset = activeRecord.posterAsset || { src: "" };
       var canvas = document.createElement("canvas");
       var ctx = canvas.getContext("2d");
       canvas.width = 1080;
@@ -1395,9 +1601,9 @@
       ctx.font = "bold 60px sans-serif";
       ctx.fillText(APP_TITLE, 96, 130);
       ctx.font = "bold 78px sans-serif";
-      ctx.fillText(state.cocktailName || "今夜特调", 96, 300, 860);
+      ctx.fillText(activeRecord.cocktailName || "今夜特调", 96, 300, 860);
       ctx.font = "36px sans-serif";
-      wrapText(ctx, state.cocktailNote || "一杯属于今晚的自定义风味。", 96, 390, 860, 56);
+      wrapText(ctx, activeRecord.cocktailNote || "一杯属于今晚的自定义风味。", 96, 390, 860, 56);
 
       ctx.save();
       ctx.translate(540, 980);
@@ -1414,13 +1620,13 @@
 
       ctx.font = "30px sans-serif";
       ctx.fillStyle = "rgba(247, 232, 203, 0.82)";
-      wrapText(ctx, recipeSummary(), 96, 1490, 860, 44);
+      wrapText(ctx, activeRecord.recipe || "", 96, 1490, 860, 44);
       ctx.font = "bold 34px sans-serif";
       ctx.fillStyle = "#f7e8cb";
-      ctx.fillText(state.signature || "由你亲手调制", 96, 1790, 860);
+      ctx.fillText(activeRecord.signature || "由你亲手调制", 96, 1790, 860);
 
       var link = document.createElement("a");
-      link.download = "cocktail-lab-poster.png";
+      link.download = (activeRecord.cocktailName || "cocktail-lab-poster") + ".png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (error) {
@@ -1580,9 +1786,10 @@
     updateViewportScale();
     mounts.panel.addEventListener("click", handlePanelClick);
     mounts.panel.addEventListener("input", handlePanelInput);
+    mounts.header.addEventListener("click", handleHeaderClick);
     mounts.controls.addEventListener("click", handleControlClick);
     mounts.stage.addEventListener("click", handleControlClick);
-    mounts.modal.addEventListener("click", handleControlClick);
+    mounts.modal.addEventListener("click", handleModalClick);
     window.addEventListener("resize", updateViewportScale);
     window.addEventListener("orientationchange", updateViewportScale);
     if (window.visualViewport) {

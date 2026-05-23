@@ -3,6 +3,7 @@
   const ERROR_MESSAGE = "哎呀，出错了，请重启试试吧~";
   const STORAGE_KEY = "cocktail-lab-state";
   const CELLAR_STORAGE_KEY = "cocktail-lab-cellar";
+  const CHALLENGE_TOTAL_ROUNDS = 5;
   const SOUND_ROOT = "./audio";
   const SOUND_EFFECTS = {
     addWater: SOUND_ROOT + "/加水.mp3",
@@ -188,11 +189,20 @@
   };
 
   const CLASSICS = [
-    { name: "金汤力", base: "gin", mixers: ["soda"], flavors: ["lime"], method: "built", glass: "highball", minScore: 70 },
-    { name: "自由古巴", base: "rum", mixers: ["cola", "ice"], flavors: ["lime"], method: "built", glass: "highball", minScore: 75 },
-    { name: "威士忌酸", base: "whiskey", mixers: ["syrup"], flavors: ["lemon"], method: "shaken", glass: "rocks", minScore: 70 },
-    { name: "龙舌兰日出", base: "tequila", mixers: ["ice"], flavors: ["orange", "cranberry"], method: "layered", glass: "highball", minScore: 70 },
-    { name: "蔓越莓伏特加", base: "vodka", mixers: [], flavors: ["cranberry"], method: "built", glass: "highball", minScore: 60 },
+    { id: "gin-tonic", name: "金汤力", base: "gin", mixers: ["soda"], flavors: ["lime"], method: "built", glass: "highball", minScore: 70, description: "清冽、带气泡感的经典高杯组合。" },
+    { id: "cuba-libre", name: "自由古巴", base: "rum", mixers: ["cola", "ice"], flavors: ["lime"], method: "built", glass: "highball", minScore: 75, description: "朗姆与可乐相遇，是深夜里最轻松的一杯。" },
+    { id: "whiskey-sour", name: "威士忌酸", base: "whiskey", mixers: ["syrup"], flavors: ["lemon"], method: "shaken", glass: "rocks", minScore: 70, description: "琥珀底色里带一点酸甜平衡的经典气质。" },
+    { id: "tequila-sunrise", name: "龙舌兰日出", base: "tequila", mixers: ["ice"], flavors: ["orange", "cranberry"], method: "layered", glass: "highball", minScore: 70, description: "像日出一样向上晕开的暖色层次。" },
+    { id: "vodka-cranberry", name: "蔓越莓伏特加", base: "vodka", mixers: [], flavors: ["cranberry"], method: "built", glass: "highball", minScore: 60, description: "冷冽底色配上莓果点缀，清爽又直接。" },
+  ];
+
+  const CHALLENGE_TITLES = [
+    { count: 0, title: "滴酒不沾局外人", note: "今晚你更像吧台边清醒旁观的人。", purity: 0 },
+    { count: 1, title: "微醺试探者", note: "你已经摸到一点经典酒谱的边，但还没彻底上头。", purity: 20 },
+    { count: 2, title: "夜场热身选手", note: "你开始有点懂酒了，也开始有点会玩了。", purity: 40 },
+    { count: 3, title: "酒馆常驻民", note: "经典酒谱对你来说已经不是偶然，是一种习惯。", purity: 60 },
+    { count: 4, title: "经典猎手", note: "你对经典的嗅觉已经很准，再差一点就能封神。", purity: 80 },
+    { count: 5, title: "传奇酒鬼", note: "五杯全中，你就是今晚最懂酒的那个人。", purity: 100 },
   ];
 
   const mounts = {
@@ -228,6 +238,31 @@
       cocktailName: "",
       cocktailNote: "",
       signature: "",
+      challenge: defaultChallengeState(),
+    };
+  }
+
+  function defaultChallengeState() {
+    return {
+      active: false,
+      round: 1,
+      hits: [],
+      attempts: [],
+      finished: false,
+    };
+  }
+
+  function normalizeChallenge(value) {
+    var base = defaultChallengeState();
+    if (!value || typeof value !== "object") {
+      return base;
+    }
+    return {
+      active: Boolean(value.active),
+      round: clamp(Number(value.round) || 1, 1, CHALLENGE_TOTAL_ROUNDS),
+      hits: Array.isArray(value.hits) ? value.hits.slice(0, CLASSICS.length) : [],
+      attempts: Array.isArray(value.attempts) ? value.attempts.slice(0, CHALLENGE_TOTAL_ROUNDS) : [],
+      finished: Boolean(value.finished),
     };
   }
 
@@ -249,11 +284,14 @@
       cocktailName: value.cocktailName,
       cocktailNote: value.cocktailNote,
       signature: value.signature,
+      challenge: normalizeChallenge(value.challenge),
     };
   }
 
   function normalizeState(value) {
-    return Object.assign(initialState(), value || {});
+    var normalized = Object.assign(initialState(), value || {});
+    normalized.challenge = normalizeChallenge(value && value.challenge);
+    return normalized;
   }
 
   function loadState() {
@@ -306,6 +344,23 @@
 
   function clamp(value, min, max) {
     return Math.min(max, Math.max(min, value));
+  }
+
+  function challengeSummary() {
+    var challenge = state.challenge || defaultChallengeState();
+    var hitCount = challenge.hits.length;
+    return CHALLENGE_TITLES.find(function (item) { return item.count === hitCount; }) || CHALLENGE_TITLES[0];
+  }
+
+  function isChallengeMode() {
+    return Boolean(state.challenge && state.challenge.active && !state.challenge.finished);
+  }
+
+  function challengeProgressLabel() {
+    if (!isChallengeMode()) {
+      return "酒鬼挑战";
+    }
+    return "挑战 " + clamp(state.challenge.round, 1, CHALLENGE_TOTAL_ROUNDS) + "/" + CHALLENGE_TOTAL_ROUNDS;
   }
 
   function canProceed() {
@@ -551,7 +606,16 @@
     stopShakeMode();
     modalState = { type: null, recordId: null };
     clearStageFx(true);
-    state = initialState();
+    if (isChallengeMode()) {
+      var keptChallenge = Object.assign(defaultChallengeState(), state.challenge, {
+        active: true,
+        finished: false,
+      });
+      state = initialState();
+      state.challenge = keptChallenge;
+    } else {
+      state = initialState();
+    }
     basePage = 0;
     saveState();
     render();
@@ -565,6 +629,35 @@
     basePage = 0;
     saveState();
     render();
+  }
+
+  function beginChallengeRound(existingChallenge) {
+    stopShakeMode();
+    modalState = { type: null, recordId: null };
+    clearStageFx(true);
+    var nextChallenge = normalizeChallenge(existingChallenge || state.challenge);
+    nextChallenge.active = true;
+    nextChallenge.finished = false;
+    nextChallenge.round = clamp(nextChallenge.round || 1, 1, CHALLENGE_TOTAL_ROUNDS);
+    state = initialState();
+    state.challenge = nextChallenge;
+    basePage = 0;
+    saveState();
+    render();
+  }
+
+  function startChallengeMode() {
+    beginChallengeRound(defaultChallengeState());
+  }
+
+  function restartChallengeMode() {
+    beginChallengeRound(defaultChallengeState());
+  }
+
+  function continueChallengeRound() {
+    var nextChallenge = normalizeChallenge(state.challenge);
+    nextChallenge.round = clamp(nextChallenge.round + 1, 1, CHALLENGE_TOTAL_ROUNDS);
+    beginChallengeRound(nextChallenge);
   }
 
   function snapshotState() {
@@ -709,6 +802,64 @@
     });
 
     return best && best.score >= best.recipe.minScore ? best : null;
+  }
+
+  function posterAssetForClassicRecipe(recipe) {
+    if (!recipe) {
+      return { src: "", colorCategory: "amber", colorLabel: "琥珀", cupLabel: "" };
+    }
+    var prevState = state;
+    state = normalizeState({
+      baseSelection: recipe.base ? { id: recipe.base, pours: 1 } : null,
+      mixerSelections: recipe.mixers.map(function (id) { return { id: id, pours: 1 }; }),
+      flavorSelections: recipe.flavors.slice(),
+      methodSelection: recipe.method,
+      methodReady: true,
+      glassSelection: recipe.glass,
+      posterTheme: "warm-night",
+      challenge: defaultChallengeState(),
+    });
+    var mix = deriveMix();
+    var finalVisual = deriveFinal(mix);
+    var asset = derivePosterAsset(mix, finalVisual);
+    state = prevState;
+    return asset;
+  }
+
+  function resolveChallengeAttempt() {
+    var challenge = normalizeChallenge(state.challenge);
+    var classic = findClassic();
+    var uniqueHits = challenge.hits.slice();
+    if (classic && uniqueHits.indexOf(classic.recipe.id) < 0) {
+      uniqueHits.push(classic.recipe.id);
+    }
+    var attempt = {
+      round: clamp(challenge.round, 1, CHALLENGE_TOTAL_ROUNDS),
+      success: Boolean(classic),
+      classicId: classic ? classic.recipe.id : "",
+      classicName: classic ? classic.recipe.name : "",
+      classicDescription: classic ? classic.recipe.description : "",
+      recipe: recipeSummary(),
+      posterAsset: classic ? posterAssetForClassicRecipe(classic.recipe) : derivePosterAsset(deriveMix(), deriveFinal(deriveMix())),
+    };
+    challenge.hits = uniqueHits;
+    challenge.attempts = challenge.attempts.concat([attempt]).slice(0, CHALLENGE_TOTAL_ROUNDS);
+    challenge.finished = attempt.round >= CHALLENGE_TOTAL_ROUNDS;
+    state.challenge = challenge;
+    saveState();
+    modalState = {
+      type: challenge.finished ? "challenge-result" : "challenge-round",
+      recordId: String(attempt.round),
+    };
+    render();
+  }
+
+  function currentChallengeAttempt() {
+    var attempts = (state.challenge && state.challenge.attempts) || [];
+    if (!attempts.length) {
+      return null;
+    }
+    return attempts[attempts.length - 1];
   }
 
   function recipeSummary() {
@@ -945,7 +1096,10 @@
   }
 
   function renderHeader(step) {
-    var index = STEPS.findIndex(function (item) { return item.id === step.id; });
+    var challenge = normalizeChallenge(state.challenge);
+    var challengeMeta = isChallengeMode()
+      ? `<span class="topbar__challenge-meta">已命中 ${challenge.hits.length} / ${CLASSICS.length}</span>`
+      : "";
     mounts.header.innerHTML = `
       <div class="topbar">
         <div class="topbar__copy">
@@ -954,9 +1108,11 @@
           <p class="topbar__helper">${step.helper}</p>
         </div>
         <div class="topbar__step">
-          <button type="button" class="topbar__cellar" data-action="open-cellar">酒单 ${cellar.length ? '<span class="topbar__cellar-count">' + cellar.length + '</span>' : ""}</button>
-          <span class="topbar__step-badge">Step ${index + 1}</span>
-          <span class="topbar__step-label">${step.label}</span>
+          <div class="topbar__actions">
+            <button type="button" class="topbar__cellar topbar__cellar--challenge ${isChallengeMode() ? "topbar__cellar--active" : ""}" data-action="open-challenge">${challengeProgressLabel()}</button>
+            <button type="button" class="topbar__cellar" data-action="open-cellar">酒单 ${cellar.length ? '<span class="topbar__cellar-count">' + cellar.length + '</span>' : ""}</button>
+          </div>
+          ${challengeMeta}
         </div>
       </div>
     `;
@@ -1320,12 +1476,18 @@
     var index = STEPS.findIndex(function (item) {
       return item.id === state.currentStep;
     });
+    var nextLabel = "下一步 →";
+    if (isChallengeMode() && state.currentStep === "glass") {
+      nextLabel = "提交本杯";
+    } else if (index >= STEPS.length - 1) {
+      nextLabel = "完成海报";
+    }
 
     mounts.controls.innerHTML = `
       <div class="control-strip">
         <button type="button" class="control-button control-button--ghost" data-action="prev" ${index <= 0 ? "disabled" : ""}>← 上一步</button>
         <button type="button" class="control-button control-button--ghost" data-action="undo" ${state.actionHistory.length ? "" : "disabled"}>↻ 撤销</button>
-        <button type="button" class="control-button control-button--primary control-button--inline-primary" data-action="next" ${canProceed() ? "" : "disabled"}>${index >= STEPS.length - 1 ? "完成海报" : "下一步 →"}</button>
+        <button type="button" class="control-button control-button--primary control-button--inline-primary" data-action="next" ${canProceed() ? "" : "disabled"}>${nextLabel}</button>
         <button type="button" class="control-button control-button--ghost control-button--danger" data-action="reset">重置 ↺</button>
       </div>
     `;
@@ -1339,6 +1501,11 @@
 
   function openCellarModal() {
     modalState = { type: "cellar", recordId: null };
+    render();
+  }
+
+  function openChallengeModal() {
+    modalState = { type: "challenge", recordId: null };
     render();
   }
 
@@ -1404,6 +1571,96 @@
     `;
   }
 
+  function renderChallengeIntroModal() {
+    var challenge = normalizeChallenge(state.challenge);
+    var inProgress = challenge.active && !challenge.finished && challenge.attempts.length > 0;
+    return `
+      <div class="poster-modal__backdrop" data-action="close-modal"></div>
+      <div class="poster-modal__card poster-modal__card--challenge">
+        <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+        <p class="poster-modal__eyebrow">酒鬼挑战</p>
+        <div class="challenge-hero">
+          <h3 class="challenge-hero__title">5 次机会，看看你能调出几杯经典酒</h3>
+          <p class="challenge-hero__text">每次完成一杯，系统都会立刻判断你有没有命中经典配方。挑战结束后，会生成你的酒鬼纯度和专属称号。</p>
+          <div class="challenge-hero__rules">
+            <span class="challenge-hero__rule">5 次调酒机会</span>
+            <span class="challenge-hero__rule">命中经典酒就算成功收集</span>
+            <span class="challenge-hero__rule">解锁 0 - 5 的酒鬼称号</span>
+          </div>
+          ${inProgress ? `<p class="challenge-hero__progress">当前进度：第 ${challenge.round} / ${CHALLENGE_TOTAL_ROUNDS} 杯，已收集 ${challenge.hits.length} / ${CLASSICS.length} 杯经典酒。</p>` : ""}
+        </div>
+        <div class="poster-modal__actions">
+          ${inProgress ? `<button type="button" class="control-button control-button--ghost" data-action="restart-challenge">重新开始</button>` : `<button type="button" class="control-button control-button--ghost" data-action="close-modal">稍后再试</button>`}
+          <button type="button" class="control-button" data-action="${inProgress ? "resume-challenge" : "start-challenge"}">${inProgress ? "继续挑战" : "开始挑战"}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderChallengeRoundModal(attempt) {
+    var challenge = normalizeChallenge(state.challenge);
+    return `
+      <div class="poster-modal__backdrop" data-action="close-modal"></div>
+      <div class="poster-modal__card poster-modal__card--challenge">
+        <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+        <p class="poster-modal__eyebrow">酒鬼挑战 · 第 ${attempt.round} / ${CHALLENGE_TOTAL_ROUNDS} 杯</p>
+        <div class="challenge-round ${attempt.success ? "challenge-round--success" : "challenge-round--miss"}">
+          <div class="challenge-round__badge">${attempt.success ? "命中经典酒" : "这杯没中"}</div>
+          <h3 class="challenge-round__title">${attempt.success ? "你调出了：" + attempt.classicName : "这杯是你的自创特调"}</h3>
+          <p class="challenge-round__text">${attempt.success ? attempt.classicDescription : "暂时没有命中经典配方，但这也可能是一杯很有你风格的原创之作。"}</p>
+          <p class="challenge-round__meta">已收集 ${challenge.hits.length} / ${CLASSICS.length} 杯经典酒</p>
+        </div>
+        <div class="poster-modal__actions">
+          <button type="button" class="control-button control-button--ghost" data-action="end-challenge-early">提前结算</button>
+          <button type="button" class="control-button" data-action="next-challenge-round">下一杯</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderChallengeResultModal() {
+    var challenge = normalizeChallenge(state.challenge);
+    var summary = challengeSummary();
+    var unlocked = challenge.hits.slice();
+    var cards = CLASSICS.map(function (classic) {
+      var found = unlocked.indexOf(classic.id) >= 0;
+      var asset = found ? posterAssetForClassicRecipe(classic) : null;
+      return `
+        <div class="challenge-collection-card ${found ? "challenge-collection-card--found" : ""}">
+          <div class="challenge-collection-card__thumb">
+            ${found && asset && asset.src
+              ? `<img class="challenge-collection-card__image" src="${asset.src}" alt="${escapeHtml(classic.name)}">`
+              : `<span class="challenge-collection-card__mark">?</span>`}
+          </div>
+          <span class="challenge-collection-card__name">${found ? classic.name : "？？？"}</span>
+        </div>
+      `;
+    }).join("");
+    return `
+      <div class="poster-modal__backdrop" data-action="close-modal"></div>
+      <div class="poster-modal__card poster-modal__card--challenge-result">
+        <button type="button" class="poster-modal__close" data-action="close-modal" aria-label="关闭">×</button>
+        <p class="poster-modal__eyebrow">酒鬼挑战结果</p>
+        <div class="challenge-result">
+          <div class="challenge-result__hero">
+            <p class="challenge-result__purity">你的酒鬼纯度：${summary.purity}%</p>
+            <h3 class="challenge-result__title">${summary.title}</h3>
+            <p class="challenge-result__text">${summary.note}</p>
+            <div class="challenge-result__score">${challenge.hits.length} / ${CLASSICS.length}</div>
+          </div>
+          <div class="challenge-result__section">
+            <p class="challenge-result__section-title">本次解锁的经典酒</p>
+            <div class="challenge-collection-grid">${cards}</div>
+          </div>
+        </div>
+        <div class="poster-modal__actions">
+          <button type="button" class="control-button control-button--ghost" data-action="restart-challenge">再来一局</button>
+          <button type="button" class="control-button" data-action="save-challenge-result">保存结果海报</button>
+        </div>
+      </div>
+    `;
+  }
+
   function renderModal() {
     if (!mounts.modal) {
       return;
@@ -1439,6 +1696,19 @@
     if (modalState.type === "cellar-detail") {
       var record = cellar.find(function (item) { return item.id === modalState.recordId; });
       mounts.modal.innerHTML = record ? renderCellarDetailModal(record) : renderCellarModal();
+      return;
+    }
+    if (modalState.type === "challenge") {
+      mounts.modal.innerHTML = renderChallengeIntroModal();
+      return;
+    }
+    if (modalState.type === "challenge-round") {
+      var attempt = currentChallengeAttempt();
+      mounts.modal.innerHTML = attempt ? renderChallengeRoundModal(attempt) : renderChallengeIntroModal();
+      return;
+    }
+    if (modalState.type === "challenge-result") {
+      mounts.modal.innerHTML = renderChallengeResultModal();
     }
   }
 
@@ -1519,6 +1789,10 @@
     if (action === "next" && canProceed() && state.currentStep === "poster") {
       openPosterModal();
     }
+    if (action === "next" && canProceed() && state.currentStep === "glass" && isChallengeMode()) {
+      resolveChallengeAttempt();
+      return;
+    }
     if (action === "next" && canProceed() && state.currentStep !== "poster") {
       moveStep(1);
     }
@@ -1531,6 +1805,24 @@
     if (action === "new-round") {
       startNewRound();
     }
+    if (action === "start-challenge") {
+      startChallengeMode();
+    }
+    if (action === "resume-challenge") {
+      closeModal();
+    }
+    if (action === "restart-challenge") {
+      restartChallengeMode();
+    }
+    if (action === "next-challenge-round") {
+      continueChallengeRound();
+    }
+    if (action === "end-challenge-early") {
+      state.challenge.finished = true;
+      modalState = { type: "challenge-result", recordId: null };
+      saveState();
+      render();
+    }
     if (action === "back-to-cellar") {
       openCellarModal();
     }
@@ -1539,6 +1831,9 @@
         ? cellar.find(function (item) { return item.id === modalState.recordId; })
         : null;
       exportPoster(record || undefined);
+    }
+    if (action === "save-challenge-result") {
+      exportChallengeResult();
     }
   }
 
@@ -1549,6 +1844,9 @@
     }
     if (button.getAttribute("data-action") === "open-cellar") {
       openCellarModal();
+    }
+    if (button.getAttribute("data-action") === "open-challenge") {
+      openChallengeModal();
     }
   }
 
@@ -1627,6 +1925,93 @@
 
       var link = document.createElement("a");
       link.download = (activeRecord.cocktailName || "cocktail-lab-poster") + ".png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } catch (error) {
+      showError(error);
+    }
+  }
+
+  async function exportChallengeResult() {
+    try {
+      var challenge = normalizeChallenge(state.challenge);
+      var summary = challengeSummary();
+      var canvas = document.createElement("canvas");
+      var ctx = canvas.getContext("2d");
+      canvas.width = 1080;
+      canvas.height = 1920;
+
+      var gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, "#130d09");
+      gradient.addColorStop(1, "#2b170d");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#f7e8cb";
+      ctx.font = "bold 58px sans-serif";
+      ctx.fillText("酒鬼挑战", 90, 120);
+      ctx.font = "34px sans-serif";
+      ctx.fillStyle = "rgba(247, 232, 203, 0.86)";
+      ctx.fillText("5 次机会，看看你能调出几杯经典酒", 90, 178);
+
+      ctx.fillStyle = "#ffdf9e";
+      ctx.font = "bold 76px sans-serif";
+      ctx.fillText("酒鬼纯度 " + summary.purity + "%", 90, 316);
+      ctx.fillStyle = "#fff1cf";
+      ctx.font = "bold 92px sans-serif";
+      ctx.fillText(summary.title, 90, 438, 900);
+      ctx.font = "34px sans-serif";
+      ctx.fillStyle = "rgba(247, 232, 203, 0.8)";
+      wrapText(ctx, summary.note, 90, 520, 900, 50);
+
+      ctx.fillStyle = "rgba(255, 221, 164, 0.12)";
+      ctx.fillRect(90, 610, 900, 90);
+      ctx.fillStyle = "#fff1cf";
+      ctx.font = "bold 42px sans-serif";
+      ctx.fillText("本次命中：" + challenge.hits.length + " / " + CLASSICS.length, 120, 668);
+
+      ctx.font = "bold 42px sans-serif";
+      ctx.fillStyle = "#f7e8cb";
+      ctx.fillText("经典酒收集", 90, 792);
+
+      var cardWidth = 280;
+      var cardHeight = 310;
+      var gap = 30;
+      for (var index = 0; index < CLASSICS.length; index += 1) {
+        var classic = CLASSICS[index];
+        var found = challenge.hits.indexOf(classic.id) >= 0;
+        var col = index % 3;
+        var row = Math.floor(index / 3);
+        var x = 90 + col * (cardWidth + gap);
+        var y = 840 + row * (cardHeight + gap);
+
+        ctx.fillStyle = found ? "rgba(38, 28, 20, 0.94)" : "rgba(18, 14, 12, 0.92)";
+        ctx.fillRect(x, y, cardWidth, cardHeight);
+        ctx.strokeStyle = found ? "rgba(255, 214, 126, 0.54)" : "rgba(255, 236, 206, 0.12)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x, y, cardWidth, cardHeight);
+
+        if (found) {
+          var asset = posterAssetForClassicRecipe(classic);
+          if (asset && asset.src) {
+            var image = await loadImage(asset.src);
+            drawPosterImage(ctx, image, x + 28, y + 20, cardWidth - 56, 190);
+          }
+          ctx.fillStyle = "#fff1cf";
+          ctx.font = "bold 32px sans-serif";
+          ctx.fillText(classic.name, x + 20, y + 258, cardWidth - 40);
+        } else {
+          ctx.fillStyle = "rgba(247, 232, 203, 0.52)";
+          ctx.font = "bold 92px sans-serif";
+          ctx.fillText("?", x + 116, y + 154);
+          ctx.fillStyle = "rgba(247, 232, 203, 0.62)";
+          ctx.font = "bold 28px sans-serif";
+          ctx.fillText("等待解锁", x + 80, y + 256);
+        }
+      }
+
+      var link = document.createElement("a");
+      link.download = "酒鬼挑战结果.png";
       link.href = canvas.toDataURL("image/png");
       link.click();
     } catch (error) {

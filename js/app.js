@@ -5,6 +5,7 @@
   const CELLAR_STORAGE_KEY = "cocktail-lab-cellar";
   const CHALLENGE_TOTAL_ROUNDS = 5;
   const SOUND_ROOT = "./audio";
+  const BGM_SRC = SOUND_ROOT + "/riverFlowsInYou-half.mp3";
   const SOUND_EFFECTS = {
     addWater: SOUND_ROOT + "/加水.mp3",
     addIce: SOUND_ROOT + "/丢入冰块.mp3",
@@ -41,23 +42,23 @@
   ];
 
   const MIXERS = [
-    { id: "syrup", name: "糖浆", palette: "amber", strength: 1, clarityShift: -1, fill: 0.6, bubble: 0, ice: 0, foam: 1 },
-    { id: "bitters", name: "苦精", palette: "tea", strength: 1, clarityShift: 0, fill: 0.3, bubble: 0, ice: 0, foam: 0 },
-    { id: "soda", name: "苏打顶", palette: "crystal", strength: 1, clarityShift: 2, fill: 0.8, bubble: 3, ice: 0, foam: 1 },
-    { id: "cola", name: "可乐", palette: "cola", strength: 4, clarityShift: -2, fill: 0.9, bubble: 1, ice: 0, foam: 0 },
-    { id: "tea", name: "红茶", palette: "tea", strength: 3, clarityShift: -1, fill: 0.8, bubble: 0, ice: 0, foam: 0 },
-    { id: "ice", name: "冰块", palette: "crystal", strength: 0, clarityShift: 1, fill: 0.2, bubble: 0, ice: 3, foam: 0 },
+    { id: "syrup", name: "糖浆", palette: "amber", strength: 1, clarityShift: -1, fill: 0.6, bubble: 0, ice: 0, foam: 1, icon: "./images/icon/糖浆.webp" },
+    { id: "bitters", name: "苦精", palette: "tea", strength: 1, clarityShift: 0, fill: 0.3, bubble: 0, ice: 0, foam: 0, icon: "./images/icon/苦精.webp" },
+    { id: "soda", name: "苏打顶", palette: "crystal", strength: 1, clarityShift: 2, fill: 0.8, bubble: 3, ice: 0, foam: 1, icon: "./images/icon/sparklingWater.webp" },
+    { id: "cola", name: "可乐", palette: "cola", strength: 4, clarityShift: -2, fill: 0.9, bubble: 1, ice: 0, foam: 0, icon: "./images/icon/可乐.webp" },
+    { id: "tea", name: "红茶", palette: "tea", strength: 3, clarityShift: -1, fill: 0.8, bubble: 0, ice: 0, foam: 0, icon: "./images/icon/红茶.webp" },
+    { id: "ice", name: "冰块", palette: "crystal", strength: 0, clarityShift: 1, fill: 0.2, bubble: 0, ice: 3, foam: 0, icon: "./images/icon/冰块.webp" },
   ];
 
   const FLAVORS = [
-    { id: "lemon", name: "柠檬", accent: "sunset", garnish: "柠檬片" },
-    { id: "lime", name: "青柠", accent: "lime", garnish: "青柠片" },
-    { id: "orange", name: "橙子", accent: "sunset", garnish: "橙皮卷" },
-    { id: "strawberry", name: "草莓", accent: "berry", garnish: "草莓果粒" },
-    { id: "peach", name: "蜜桃", accent: "sunset", garnish: "蜜桃片" },
-    { id: "cranberry", name: "蔓越莓", accent: "berry", garnish: "莓果串" },
-    { id: "pineapple", name: "菠萝", accent: "amber", garnish: "菠萝角" },
-    { id: "blueberry", name: "蓝莓", accent: "ocean", garnish: "蓝莓串" },
+    { id: "lemon", name: "柠檬", accent: "sunset", garnish: "柠檬片", icon: "./images/icon/柠檬.webp" },
+    { id: "lime", name: "青柠", accent: "lime", garnish: "青柠片", icon: "./images/icon/青柠.webp" },
+    { id: "orange", name: "橙子", accent: "sunset", garnish: "橙皮卷", icon: "./images/icon/橙子.webp" },
+    { id: "strawberry", name: "草莓", accent: "berry", garnish: "草莓果粒", icon: "./images/icon/草莓.webp" },
+    { id: "peach", name: "蜜桃", accent: "sunset", garnish: "蜜桃片", icon: "./images/icon/蜜桃.webp" },
+    { id: "cranberry", name: "覆盆子", accent: "berry", garnish: "莓果串", icon: "./images/icon/覆盆子.webp" },
+    { id: "pineapple", name: "菠萝", accent: "amber", garnish: "菠萝角", icon: "./images/icon/菠萝.webp" },
+    { id: "blueberry", name: "蓝莓", accent: "ocean", garnish: "蓝莓串", icon: "./images/icon/蓝莓.webp" },
   ];
 
   const METHODS = [
@@ -144,36 +145,117 @@
   };
   const POSTER_IMAGE_MANIFEST = {
     橙色: {
-      古典杯: "橙色/橙色-古典杯-s02_r2c1.png",
-      柯林杯: "橙色/橙色-柯林杯-s04_r1c1.png",
-      玛格丽特杯: "橙色/橙色-玛格丽特杯-s01_r1c2.png",
-      香槟杯: "橙色/橙色-香槟杯-s01_r3c2.png",
-      马天尼杯: "橙色/橙色-马天尼杯-s05_r3c3.png",
+      古典杯: [
+        "橙色/橙色-古典杯-s02_r2c1.png",
+        "橙色/橙色-古典杯-s04_r2c1.png",
+        "橙色/橙色-古典杯-s07_r2c1.png",
+      ],
+      柯林杯: [
+        "橙色/橙色-柯林杯-s04_r1c1.png",
+        "橙色/橙色-柯林杯-s04_r1c3.png",
+        "橙色/橙色-柯林杯-s08_r1c1.png",
+        "橙色/橙色-柯林杯-s08_r1c3.png",
+      ],
+      玛格丽特杯: [
+        "橙色/橙色-玛格丽特杯-s01_r1c2.png",
+        "橙色/橙色-玛格丽特杯-s02_r1c2.png",
+      ],
+      香槟杯: [
+        "橙色/橙色-香槟杯-s01_r3c2.png",
+        "橙色/橙色-香槟杯-s02_r3c2.png",
+        "橙色/橙色-香槟杯-s03_r3c2.png",
+      ],
+      马天尼杯: "琥珀色/琥珀色-马天尼杯-s09_r3c3.png",
     },
     琥珀色: {
-      古典杯: "琥珀色/琥珀色-古典杯-s01_r2c1.png",
-      柯林杯: "琥珀色/琥珀色-柯林杯-s02_r1c1.png",
-      香槟杯: "琥珀色/琥珀色-香槟杯-s04_r2c3.png",
+      古典杯: [
+        "琥珀色/琥珀色-古典杯-s01_r2c1.png",
+        "琥珀色/琥珀色-古典杯-s03_r2c1.png",
+        "琥珀色/琥珀色-古典杯-s05_r2c1.png",
+        "琥珀色/琥珀色-古典杯-s08_r2c1.png",
+        "琥珀色/琥珀色-古典杯-s09_r2c1.png",
+      ],
+      柯林杯: [
+        "琥珀色/琥珀色-柯林杯-s02_r1c1.png",
+        "琥珀色/琥珀色-柯林杯-s03_r1c3.png",
+        "琥珀色/琥珀色-柯林杯-s09_r1c1.png",
+        "琥珀色/琥珀色-柯林杯-s09_r1c3.png",
+      ],
+      香槟杯: [
+        "琥珀色/琥珀色-香槟杯-s04_r2c3.png",
+        "琥珀色/琥珀色-香槟杯-s08_r2c3.png",
+        "琥珀色/琥珀色-香槟杯-s09_r2c3.png",
+      ],
       马天尼杯: "琥珀色/琥珀色-马天尼杯-s09_r3c3.png",
     },
     粉色: {
       古典杯: "粉色/粉色-古典杯-s06_r2c1.png",
-      柯林杯: "粉色/粉色-柯林杯-s06_r1c1.png",
-      玛格丽特杯: "粉色/粉色-玛格丽特杯-s01_r3c1.png",
-      飓风杯: "粉色/粉色-飓风杯-s01_r2c2.png",
-      香槟杯: "粉色/粉色-香槟杯-s03_r2c3.png",
-      马天尼杯: "粉色/粉色-马天尼杯-s01_r3c3.png",
+      柯林杯: [
+        "粉色/粉色-柯林杯-s05_r1c3.png",
+        "粉色/粉色-柯林杯-s06_r1c1.png",
+        "粉色/粉色-柯林杯-s06_r1c3.png",
+      ],
+      玛格丽特杯: [
+        "粉色/粉色-玛格丽特杯-s01_r3c1.png",
+        "粉色/粉色-玛格丽特杯-s02_r3c1.png",
+        "粉色/粉色-玛格丽特杯-s06_r1c2.png",
+        "粉色/粉色-玛格丽特杯-s06_r3c1.png",
+      ],
+      飓风杯: [
+        "粉色/粉色-飓风杯-s01_r2c2.png",
+        "粉色/粉色-飓风杯-s02_r2c2.png",
+        "粉色/粉色-飓风杯-s04_r2c2.png",
+        "粉色/粉色-飓风杯-s06_r2c2.png",
+        "粉色/粉色-飓风杯-s08_r2c2.png",
+        "粉色/粉色-飓风杯-s09_r2c2.png",
+      ],
+      香槟杯: [
+        "粉色/粉色-香槟杯-s03_r2c3.png",
+        "粉色/粉色-香槟杯-s05_r2c3.png",
+        "粉色/粉色-香槟杯-s06_r2c3.png",
+        "粉色/粉色-香槟杯-s06_r3c2.png",
+      ],
+      马天尼杯: "琥珀色/琥珀色-马天尼杯-s09_r3c3.png",
     },
     紫色: {
-      柯林杯: "紫色/紫色-柯林杯-s03_r1c1.png",
-      飓风杯: "紫色/紫色-飓风杯-s03_r2c2.png",
+      柯林杯: [
+        "紫色/粉色-柯林杯-s01_r1c1.png",
+        "紫色/紫色-柯林杯-s03_r1c1.png",
+        "紫色/紫色-柯林杯-s05_r1c1.png",
+      ],
+      飓风杯: [
+        "紫色/紫色-飓风杯-s03_r2c2.png",
+        "紫色/紫色-飓风杯-s05_r2c2.png",
+      ],
     },
     黄色: {
-      柯林杯: "黄色/黄色-柯林杯-s01_r1c3.png",
-      玛格丽特杯: "黄色/黄色-玛格丽特杯-s03_r1c2.png",
+      柯林杯: [
+        "黄色/黄色-柯林杯-s01_r1c3.png",
+        "黄色/黄色-柯林杯-s02_r1c3.png",
+        "黄色/黄色-柯林杯-s07_r1c1.png",
+        "黄色/黄色-柯林杯-s07_r1c3.png",
+      ],
+      玛格丽特杯: [
+        "黄色/黄色-玛格丽特杯-s03_r1c2.png",
+        "黄色/黄色-玛格丽特杯-s03_r3c1.png",
+        "黄色/黄色-玛格丽特杯-s04_r1c2.png",
+        "黄色/黄色-玛格丽特杯-s07_r1c2.png",
+        "黄色/黄色-玛格丽特杯-s07_r3c1.png",
+        "黄色/黄色-玛格丽特杯-s08_r1c2.png",
+        "黄色/黄色-玛格丽特杯-s09_r1c2.png",
+      ],
       飓风杯: "黄色/黄色-飓风杯-s07_r2c2.png",
-      香槟杯: "黄色/黄色-香槟杯-s01_r2c3.png",
-      马天尼杯: "黄色/黄色-马天尼杯-s02_r3c3.png",
+      香槟杯: [
+        "黄色/黄色-香槟杯-s01_r2c3.png",
+        "黄色/黄色-香槟杯-s02_r2c3.png",
+        "黄色/黄色-香槟杯-s04_r3c2.png",
+        "黄色/黄色-香槟杯-s05_r3c2.png",
+        "黄色/黄色-香槟杯-s07_r2c3.png",
+        "黄色/黄色-香槟杯-s07_r3c2.png",
+        "黄色/黄色-香槟杯-s08_r3c2.png",
+        "黄色/黄色-香槟杯-s09_r3c2.png",
+      ],
+      马天尼杯: "琥珀色/琥珀色-马天尼杯-s09_r3c3.png",
     },
   };
 
@@ -221,6 +303,9 @@
   let stageFx = { type: "idle", paletteKey: "crystal", token: 0 };
   let stageFxTimer = null;
   const sfxPlayers = {};
+  let bgmPlayer = null;
+  let bgmStarted = false;
+  let welcomeVisible = true;
   let basePage = 0;
   let cellar = loadCellar();
 
@@ -393,6 +478,30 @@
         playPromise.catch(function () {});
       }
     } catch (error) {
+      console.warn(error);
+    }
+  }
+
+  function startBackgroundMusic() {
+    if (bgmStarted) {
+      return;
+    }
+    bgmStarted = true;
+    try {
+      if (!bgmPlayer) {
+        bgmPlayer = new Audio(BGM_SRC);
+        bgmPlayer.loop = true;
+        bgmPlayer.volume = 0.28;
+        bgmPlayer.preload = "auto";
+      }
+      var playPromise = bgmPlayer.play();
+      if (playPromise && typeof playPromise.catch === "function") {
+        playPromise.catch(function () {
+          bgmStarted = false;
+        });
+      }
+    } catch (error) {
+      bgmStarted = false;
       console.warn(error);
     }
   }
@@ -631,7 +740,20 @@
     render();
   }
 
+  function startFreePlayFromWelcome() {
+    welcomeVisible = false;
+    stopShakeMode();
+    modalState = { type: null, recordId: null };
+    clearStageFx(true);
+    state = initialState();
+    basePage = 0;
+    saveState();
+    startBackgroundMusic();
+    render();
+  }
+
   function beginChallengeRound(existingChallenge) {
+    welcomeVisible = false;
     stopShakeMode();
     modalState = { type: null, recordId: null };
     clearStageFx(true);
@@ -998,7 +1120,7 @@
 
     candidateCups.some(function (cupName) {
       if (manifest[cupName]) {
-        filePath = manifest[cupName];
+        filePath = pickPosterManifestPath(manifest[cupName], colorCategory, cupName);
         matchedCup = cupName;
         return true;
       }
@@ -1008,7 +1130,7 @@
     if (!filePath) {
       var fallbackCup = Object.keys(manifest)[0];
       if (fallbackCup) {
-        filePath = manifest[fallbackCup];
+        filePath = pickPosterManifestPath(manifest[fallbackCup], colorCategory, fallbackCup);
         matchedCup = fallbackCup;
       }
     }
@@ -1028,6 +1150,17 @@
       src: encodeURI(POSTER_IMAGE_ROOT + "/" + filePath.replace(/\.(png|jpg|jpeg)$/i, ".webp")),
       cupLabel: matchedCup || labelOf(GLASSES, finalVisual.glassId),
     };
+  }
+
+  function pickPosterManifestPath(entry, colorCategory, cupName) {
+    if (!Array.isArray(entry)) {
+      return entry;
+    }
+    if (!entry.length) {
+      return "";
+    }
+    var seed = currentIngredientSignature() + "|" + colorCategory + "|" + cupName;
+    return entry[hashString(seed) % entry.length];
   }
 
   function posterRecordFromState(sourceState) {
@@ -1093,6 +1226,7 @@
     renderPanel(step, mix, finalVisual, classic);
     renderControls();
     renderModal();
+    renderWelcome();
   }
 
   function renderHeader(step) {
@@ -1251,14 +1385,14 @@
     if (state.currentStep === "mixer") {
       items = MIXERS.map(function (item) {
         var current = state.mixerSelections.find(function (entry) { return entry.id === item.id; });
-        return optionCard(item.id, item.name, current ? current.pours + " 份" : "点击加入", "mixer", Boolean(current));
+        return optionCard(item.id, item.name, current ? current.pours + " 份" : "点击加入", "mixer", Boolean(current), item.icon);
       }).join("");
     }
 
     if (state.currentStep === "flavor") {
       items = FLAVORS.map(function (item) {
         var selected = state.flavorSelections.indexOf(item.id) >= 0;
-        return optionCard(item.id, item.name, selected ? "已放入托盘" : "点击选择", "flavor", selected);
+        return optionCard(item.id, item.name, selected ? "已放入托盘" : "点击选择", "flavor", selected, item.icon);
       }).join("");
     }
 
@@ -1314,7 +1448,7 @@
             <input type="text" name="signature" maxlength="12" value="${escapeHtml(state.signature)}">
           </label>
           <div class="theme-switch">${themeButtons}</div>
-          <button type="button" class="save-button" data-action="save-poster">生成海报</button>
+          <button type="button" class="save-button" data-action="save-poster">保存海报</button>
         </div>
       </div>
     `;
@@ -1712,6 +1846,32 @@
     }
   }
 
+  function renderWelcome() {
+    if (!mounts.modal) {
+      return;
+    }
+    if (!welcomeVisible) {
+      return;
+    }
+    mounts.modal.classList.remove("hidden");
+    mounts.modal.setAttribute("aria-hidden", "false");
+    mounts.modal.innerHTML = `
+      <div class="welcome-screen">
+        <div class="welcome-screen__panel">
+          <p class="welcome-screen__eyebrow">COCKTAIL LAB</p>
+          <h2 class="welcome-screen__title">调酒实验室</h2>
+          <p class="welcome-screen__lead">今晚，你会把自己调成什么味道？</p>
+          <p class="welcome-screen__copy">挑战经典，调出情绪，调出一杯只属于你的酒。</p>
+          <div class="welcome-screen__actions">
+            <button type="button" class="welcome-screen__button welcome-screen__button--primary" data-action="start-free-play">调一杯属于我的酒</button>
+            <button type="button" class="welcome-screen__button" data-action="start-challenge">酒鬼挑战</button>
+          </div>
+          <p class="welcome-screen__footer">你调出的不是酒，是今晚的自己</p>
+        </div>
+      </div>
+    `;
+  }
+
   function handlePanelClick(event) {
     var option = event.target.closest("[data-kind][data-id]");
     if (option) {
@@ -1759,7 +1919,7 @@
 
     var saveButton = event.target.closest('[data-action="save-poster"]');
     if (saveButton) {
-      openPosterModal();
+      exportPoster();
     }
   }
 
@@ -1804,6 +1964,9 @@
     }
     if (action === "new-round") {
       startNewRound();
+    }
+    if (action === "start-free-play") {
+      startFreePlayFromWelcome();
     }
     if (action === "start-challenge") {
       startChallengeMode();
@@ -1878,13 +2041,118 @@
     render();
   }
 
+  function visualForPosterRecord(record) {
+    var prevState = state;
+    if (record && record.snapshot) {
+      state = normalizeState(record.snapshot);
+    }
+    var mix = deriveMix();
+    var finalVisual = deriveFinal(mix);
+    state = prevState;
+    return { mix: mix, finalVisual: finalVisual };
+  }
+
+  function drawCanvasCocktail(ctx, mix, finalVisual, x, y, width, height) {
+    var palette = PALETTES[mix.paletteKey] || PALETTES.crystal;
+    var glassWidth = finalVisual.glassId === "rocks" ? 390 : finalVisual.glassId === "champagne" ? 250 : 320;
+    var glassHeight = finalVisual.glassId === "martini" ? 430 : finalVisual.glassId === "rocks" ? 420 : 620;
+    var glassX = x + (width - glassWidth) / 2;
+    var glassY = y + (height - glassHeight) / 2 + 30;
+    var liquidHeight = Math.max(90, glassHeight * clamp(mix.fillLevel, 0.18, 1));
+    var liquidY = glassY + glassHeight - liquidHeight - 16;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 214, 158, 0.18)";
+    ctx.beginPath();
+    ctx.ellipse(x + width / 2, y + height - 52, glassWidth * 0.72, 58, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowColor = "rgba(0, 0, 0, 0.44)";
+    ctx.shadowBlur = 36;
+    ctx.strokeStyle = "rgba(255, 241, 212, 0.82)";
+    ctx.lineWidth = 8;
+    roundRect(ctx, glassX, glassY, glassWidth, glassHeight, finalVisual.glassId === "rocks" ? 42 : 76);
+    ctx.stroke();
+
+    var liquidGradient = ctx.createLinearGradient(0, liquidY, 0, glassY + glassHeight);
+    liquidGradient.addColorStop(0, palette.top);
+    liquidGradient.addColorStop(0.52, palette.mid);
+    liquidGradient.addColorStop(1, palette.deep);
+    ctx.fillStyle = liquidGradient;
+    roundRect(ctx, glassX + 18, liquidY, glassWidth - 36, liquidHeight, 42);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, " + (0.18 + mix.clarityLevel * 0.035) + ")";
+    ctx.fillRect(glassX + 42, liquidY + 28, Math.max(42, glassWidth * 0.16), Math.max(90, liquidHeight * 0.6));
+
+    if (mix.foamLevel > 0) {
+      ctx.fillStyle = "rgba(255, 244, 220, 0.78)";
+      roundRect(ctx, glassX + 30, liquidY + 18, glassWidth - 60, 20 + mix.foamLevel * 8, 18);
+      ctx.fill();
+    }
+
+    ctx.fillStyle = palette.bubble;
+    for (var bubbleIndex = 0; bubbleIndex < mix.bubbleLevel * 8; bubbleIndex += 1) {
+      ctx.globalAlpha = 0.45;
+      ctx.beginPath();
+      ctx.arc(
+        glassX + 54 + ((bubbleIndex * 47) % Math.max(80, glassWidth - 108)),
+        liquidY + 54 + ((bubbleIndex * 83) % Math.max(80, liquidHeight - 96)),
+        5 + (bubbleIndex % 3) * 3,
+        0,
+        Math.PI * 2,
+      );
+      ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = "rgba(239, 250, 255, 0.62)";
+    for (var iceIndex = 0; iceIndex < mix.iceLevel; iceIndex += 1) {
+      ctx.save();
+      ctx.translate(glassX + 90 + iceIndex * 78, glassY + glassHeight - 130 - (iceIndex % 2) * 30);
+      ctx.rotate((-8 + iceIndex * 7) * Math.PI / 180);
+      roundRect(ctx, -30, -30, 60, 60, 12);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    if (finalVisual.garnishes.length) {
+      ctx.fillStyle = "rgba(255, 220, 132, 0.92)";
+      ctx.beginPath();
+      ctx.arc(glassX + glassWidth - 34, glassY + 24, 42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "rgba(103, 161, 74, 0.92)";
+      ctx.fillRect(glassX + glassWidth - 42, glassY + 18, 84, 12);
+    }
+
+    ctx.restore();
+  }
+
+  function downloadCanvas(canvas, filename) {
+    var dataUrl = canvas.toDataURL("image/png");
+    var link = document.createElement("a");
+    link.download = sanitizeDownloadName(filename || "cocktail-lab-poster.png");
+    link.href = dataUrl;
+    link.target = "_blank";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  function sanitizeDownloadName(filename) {
+    return String(filename || "cocktail-lab-poster.png").replace(/[\\/:*?"<>|]/g, "-");
+  }
+
   async function exportPoster(record) {
     try {
       var activeRecord = record || syncCurrentCocktailToCellar();
       var theme = THEMES.find(function (item) { return item.id === activeRecord.posterTheme; }) || THEMES[0];
-      var posterAsset = activeRecord.posterAsset || { src: "" };
+      var visual = visualForPosterRecord(activeRecord);
       var canvas = document.createElement("canvas");
       var ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Canvas context unavailable");
+      }
       canvas.width = 1080;
       canvas.height = 1920;
 
@@ -1903,18 +2171,7 @@
       ctx.font = "36px sans-serif";
       wrapText(ctx, activeRecord.cocktailNote || "一杯属于今晚的自定义风味。", 96, 390, 860, 56);
 
-      ctx.save();
-      ctx.translate(540, 980);
-      ctx.fillStyle = "rgba(255, 214, 158, 0.18)";
-      ctx.beginPath();
-      ctx.ellipse(0, 360, 250, 56, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      if (posterAsset.src) {
-        var image = await loadImage(posterAsset.src);
-        drawPosterImage(ctx, image, 150, 520, 780, 840);
-      }
+      drawCanvasCocktail(ctx, visual.mix, visual.finalVisual, 150, 520, 780, 840);
 
       ctx.font = "30px sans-serif";
       ctx.fillStyle = "rgba(247, 232, 203, 0.82)";
@@ -1923,10 +2180,7 @@
       ctx.fillStyle = "#f7e8cb";
       ctx.fillText(activeRecord.signature || "由你亲手调制", 96, 1790, 860);
 
-      var link = document.createElement("a");
-      link.download = (activeRecord.cocktailName || "cocktail-lab-poster") + ".png";
-      link.href = canvas.toDataURL("image/png");
-      link.click();
+      downloadCanvas(canvas, (activeRecord.cocktailName || "cocktail-lab-poster") + ".png");
     } catch (error) {
       showError(error);
     }
@@ -2175,6 +2429,8 @@
     mounts.controls.addEventListener("click", handleControlClick);
     mounts.stage.addEventListener("click", handleControlClick);
     mounts.modal.addEventListener("click", handleModalClick);
+    document.addEventListener("pointerdown", startBackgroundMusic, { once: true });
+    document.addEventListener("keydown", startBackgroundMusic, { once: true });
     window.addEventListener("resize", updateViewportScale);
     window.addEventListener("orientationchange", updateViewportScale);
     if (window.visualViewport) {

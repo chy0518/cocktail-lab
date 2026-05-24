@@ -169,6 +169,7 @@ button {
   min-width: 0;
   display: grid;
   gap: 4px;
+  flex: 1 1 auto;
 }
 
 .eyebrow,
@@ -190,9 +191,11 @@ button {
 
 .app-title {
   margin-top: 8px;
-  font-size: clamp(2.34rem, 11.4vw, 3.08rem);
+  font-size: clamp(2.08rem, 9.2vw, 2.72rem);
   line-height: 0.98;
   font-weight: 900;
+  letter-spacing: -0.08em;
+  white-space: nowrap;
   color: #fff1cf;
   text-shadow:
     0 2px 0 #5b3416,
@@ -205,7 +208,7 @@ button {
 }
 
 .topbar__step {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   display: grid;
   gap: 10px;
   justify-items: end;
@@ -215,7 +218,7 @@ button {
 .topbar__actions {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
 }
 
 .topbar__cellar {
@@ -223,7 +226,7 @@ button {
   align-items: center;
   gap: 6px;
   min-height: 42px;
-  padding: 0 16px;
+  padding: 0 12px;
   border-radius: 999px;
   border: 1px solid rgba(255, 208, 112, 0.34);
   background:
@@ -912,6 +915,35 @@ button {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.sheet--flavor {
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 28px;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(190, 123, 47, 0.72) rgba(10, 7, 5, 0.72);
+  scrollbar-width: thin;
+}
+
+.sheet--flavor .option-grid {
+  padding-bottom: 18px;
+}
+
+.sheet--flavor::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sheet--flavor::-webkit-scrollbar-track {
+  background: rgba(10, 7, 5, 0.72);
+  border-radius: 999px;
+}
+
+.sheet--flavor::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(255, 217, 143, 0.72), rgba(126, 76, 29, 0.88));
+  border: 2px solid rgba(10, 7, 5, 0.72);
+  border-radius: 999px;
+}
+
 .option-card {
   position: relative;
   display: grid;
@@ -1528,6 +1560,144 @@ button {
   padding: 18px;
 }
 
+.welcome-screen {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 34;
+  width: var(--ui-width);
+  height: var(--ui-height);
+  display: grid;
+  align-items: end;
+  justify-items: center;
+  padding:
+    calc(22px + var(--safe-top))
+    22px
+    calc(54px + var(--safe-bottom));
+  background:
+    radial-gradient(circle at 50% 34%, rgba(255, 189, 88, 0.2), transparent 20%),
+    linear-gradient(180deg, rgba(5, 4, 3, 0.2), rgba(5, 4, 3, 0.32) 42%, rgba(5, 4, 3, 0.82) 100%),
+    url("../images/bar-bg.webp") center top / cover no-repeat;
+  overflow: hidden;
+  transform: translate(-50%, -50%) scale(var(--ui-scale));
+  transform-origin: center center;
+}
+
+.welcome-screen::before,
+.welcome-screen::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.welcome-screen::before {
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.42), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.42)),
+    radial-gradient(circle at 50% 78%, rgba(220, 132, 48, 0.18), transparent 32%);
+}
+
+.welcome-screen::after {
+  inset: 12px;
+  border: 1px solid rgba(255, 232, 190, 0.08);
+  border-radius: 34px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+}
+
+.welcome-screen__panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 420px);
+  min-height: 470px;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  gap: 14px;
+  padding: 34px 24px 24px;
+  text-align: center;
+  border: 2px solid rgba(218, 161, 76, 0.46);
+  background:
+    radial-gradient(circle at 50% 0, rgba(255, 205, 112, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(24, 17, 11, 0.78), rgba(7, 5, 4, 0.94));
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.52),
+    inset 0 0 0 1px rgba(255, 236, 197, 0.1),
+    inset 0 0 38px rgba(0, 0, 0, 0.56);
+  clip-path: polygon(22px 0, calc(100% - 22px) 0, 100% 22px, 100% calc(100% - 22px), calc(100% - 22px) 100%, 22px 100%, 0 calc(100% - 22px), 0 22px);
+}
+
+.welcome-screen__eyebrow {
+  color: rgba(255, 222, 166, 0.58);
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.24em;
+}
+
+.welcome-screen__title {
+  color: #fff1cf;
+  font-size: clamp(2.42rem, 11vw, 3.28rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.08em;
+  text-shadow:
+    0 2px 0 #5b3416,
+    0 10px 28px rgba(0, 0, 0, 0.72),
+    0 0 26px rgba(255, 191, 93, 0.24);
+  white-space: nowrap;
+}
+
+.welcome-screen__lead {
+  max-width: 15em;
+  color: #ffe4aa;
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1.28;
+}
+
+.welcome-screen__copy {
+  max-width: 21em;
+  color: rgba(255, 236, 203, 0.78);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.welcome-screen__actions {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.welcome-screen__button {
+  min-height: 50px;
+  border: 1px solid rgba(255, 218, 143, 0.38);
+  border-radius: 999px;
+  color: #ffe8b8;
+  background:
+    linear-gradient(180deg, rgba(38, 29, 19, 0.96), rgba(13, 10, 8, 0.98)),
+    rgba(13, 10, 8, 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 220, 0.1),
+    0 12px 24px rgba(0, 0, 0, 0.34);
+  font-family: "Trebuchet MS", "Avenir Next", sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.welcome-screen__button--primary {
+  color: #2b1608;
+  border-color: rgba(255, 225, 157, 0.68);
+  background: linear-gradient(180deg, #ffe1a1, #c77f32);
+}
+
+.welcome-screen__footer {
+  margin-top: 6px;
+  color: rgba(255, 226, 178, 0.54);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+}
+
 .poster-modal__backdrop {
   position: absolute;
   inset: 0;
@@ -2038,7 +2208,19 @@ button {
   }
 
   .topbar {
-    padding-inline: 12px;
+    gap: 8px;
+    padding-inline: 0;
+  }
+
+  .app-title {
+    font-size: clamp(1.86rem, 8.4vw, 2.18rem);
+    letter-spacing: -0.1em;
+  }
+
+  .topbar__cellar {
+    min-height: 36px;
+    padding-inline: 9px;
+    font-size: 0.72rem;
   }
 
   .topbar__helper {
